@@ -96,7 +96,10 @@ xcopy $(SolutionDir)Assets\NPC\* $(OutDir)NPC\ /e /y</Command>
   <ItemGroup>
     <ClCompile Include="Actor\Enemy.cpp" />
     <ClCompile Include="Actor\Player.cpp" />
+    <ClCompile Include="Engine\GameEngine.cpp" />
     <ClCompile Include="Level\IngameLevel.cpp" />
+    <ClCompile Include="Level\MenuLevel.cpp" />
+    <ClCompile Include="Main.cpp" />
     <ClCompile Include="NPC\NPC.cpp" />
     <ClCompile Include="Dialogue\DialogueSession.cpp" />
     <ClCompile Include="Dialogue\DialogueTable.cpp" />
@@ -105,7 +108,10 @@ xcopy $(SolutionDir)Assets\NPC\* $(OutDir)NPC\ /e /y</Command>
   <ItemGroup>
     <ClInclude Include="Actor\Enemy.h" />
     <ClInclude Include="Actor\Player.h" />
+    <ClInclude Include="Engine\GameEngine.h" />
+    <ClInclude Include="Interface\ICanActorMove.h" />
     <ClInclude Include="Level\IngameLevel.h" />
+    <ClInclude Include="Level\MenuLevel.h" />
     <ClInclude Include="NPC\NPC.h" />
     <ClInclude Include="Dialogue\DialogueRow.h" />
     <ClInclude Include="Dialogue\DialogueSession.h" />

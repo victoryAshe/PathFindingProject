@@ -119,6 +119,7 @@ namespace Wanted
 					SafeDelete(mainLevel);
 
 					// 전환할 Level을 mainLevel로 지정.
+					mainLevel = nextLevel;
 
 					// pointer 정리.
 					nextLevel = nullptr;

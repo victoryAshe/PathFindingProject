@@ -20,7 +20,7 @@ namespace Wanted
 		);
 
 		static int ToInt(const std::string& s);
-		static inline std::wstring UTF8toWide(const std::string& utf8);
+		static std::wstring UTF8toWide(const std::string& utf8);
 		static UINT ParseEventID(const std::string& s);
 	private:
 		static void TrimCR(std::string& s);
