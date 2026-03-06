@@ -7,9 +7,11 @@
 
 IngameLevel::IngameLevel()
 {
-	// TODO: 아래 Actor들을 마우스 Input 등에 따라 Spawn.
+
+	screenSize = Vector2(GameEngine::Get().GetWidth(), GameEngine::Get().GetHeight());
+
+	// TODO: 지우기.
 	AddNewActor(new MouseTester());
-	//AddNewActor(new Enemy(Vector2(0,0)));
 }
 
 IngameLevel::~IngameLevel()
@@ -44,11 +46,90 @@ void IngameLevel::Draw()
 	super::Draw();
 }
 
+std::vector<Vector2> IngameLevel::FindPath(
+	const Vector2& start, 
+	const Vector2& goal
+)
+{
+	std::vector<std::vector<int>> grid = BuildNavigationGrid();
+
+	if (!grid.empty() && !grid[0].empty())
+	{
+		if (start.y >= 0 && start.y < static_cast<int>(grid.size())
+			&& start.x >= 0 && start.x < static_cast<int>(grid[0].size()))
+		{
+			grid[start.y][start.x] = 0;
+		}
+
+		if (goal.y >= 0 && goal.y < static_cast<int>(grid.size())
+			&& goal.x >= 0 && goal.x < static_cast<int>(grid[0].size()))
+		{
+			grid[goal.y][goal.x] = 0;
+		}
+	}
+
+	return aStar.FindPath(start, goal, grid);
+}
+
 bool IngameLevel::CanMove(
 	const Wanted::Vector2& curPositon, 
 	const Wanted::Vector2& nextPosition, 
 	int sortingOrder)
 {
+	if (nextPosition.x < 0 || nextPosition.x >= screenSize.x
+		|| nextPosition.y < 0 || nextPosition.y >= screenSize.y)
+	{
+		return false;
+	}
 
-	return false;
+	for (Actor* const actor : actors)
+	{
+		if (!actor || actor->DestroyRequested())
+		{
+			continue;
+		}
+
+		if (actor->GetPosition() == nextPosition)
+		{
+			if (actor->GetSortingOrder() >= sortingOrder)
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+std::vector<std::vector<int>> IngameLevel::BuildNavigationGrid() const
+{
+	std::vector<std::vector<int>> grid(
+		screenSize.y,
+		std::vector<int>(screenSize.x, 0)
+	);
+
+	for (Actor* const actor : actors)
+	{
+		if (!actor || actor->DestroyRequested())
+		{
+			continue;
+		}
+
+		const Vector2 pos = actor->GetPosition();
+
+		if (pos.x < 0 || pos.x >= screenSize.x
+			|| pos.y < 0 || pos.y >= screenSize.y)
+		{
+			continue;
+		}
+
+		// MouseTester 같은 디버그용 Actor까지 막히면 불편하므로,
+		// 우선 sortingOrder가 0보다 큰 Actor만 장애물처럼 취급.
+		if (actor->GetSortingOrder() > 0)
+		{
+			grid[pos.y][pos.x] = 1;
+		}
+	}
+
+	return grid;
 }

@@ -48,6 +48,9 @@
     <ClCompile Include="Actor\MouseTester.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Navigation\AStar.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NPC\NPC.h">
@@ -90,6 +93,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Actor\MouseTester.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Navigation\Node.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Navigation\AStar.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

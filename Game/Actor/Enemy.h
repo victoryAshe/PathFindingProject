@@ -4,6 +4,8 @@
 
 using namespace Wanted;
 
+const int EnemySortingOrder = 5;
+
 class Enemy : public Actor
 {
 	RTTI_DECLARATIONS(Enemy, Actor);
@@ -11,5 +13,9 @@ class Enemy : public Actor
 public:
 	Enemy(const Vector2& newPosition);
 
+protected:
+	virtual void Tick(float deltaTime) override;
+
+private:
 };
 
