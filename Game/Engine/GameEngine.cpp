@@ -44,7 +44,8 @@ GameEngine::~GameEngine()
 void GameEngine::ChangeLevel(GameState state)
 {
 	// 화면 지우기.
-	system("cls");
+	//system("cls");
+	// 이 호출을 하면 마우스 입력이 깨진다.
 
 	// 변경할 index => state.
 	int index = static_cast<int>(state);

@@ -13,10 +13,11 @@ class IngameLevel
 
 public:
 	// 나중에 추가할 것이 생기면 생성자/소멸자 수정.
-	IngameLevel() = default;
-	~IngameLevel() = default;
+	IngameLevel();
+	~IngameLevel();
 
 	virtual void Tick(float deltaTime) override;
+	virtual void Draw() override;
 
 private:
 

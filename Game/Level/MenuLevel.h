@@ -23,16 +23,6 @@ struct MenuItem
 		strcpy_s(this->text, length, text);
 	}
 
-	//using OnSelected = void (*)();
-	//MenuItem(const char* text, OnSelected onSelcted) 
-	//	:onSelected(onSelected) 
-	//{ 
-	//	// copy text. 
-	//	size_t length = strlen(text) + 1; 
-	//	this->text = new char[length]; 
-	//	strcpy_s(this->text, length, text); 
-	//}
-
 	~MenuItem()
 	{
 		if (text)

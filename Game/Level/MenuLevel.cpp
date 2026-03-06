@@ -31,20 +31,6 @@ MenuLevel::MenuLevel()
 		}
 	));
 
-	// temporary.
-	//items.emplace_back(new MenuItem(
-	//	"New Game",
-	//	[]()
-	//	{
-	//
-	//		// 새 게임 만들기.
-	//		GameEngine::Get().CreateNewInGame();
-	//
-	//		// 만든 게임으로 바꾸기.
-	//		GameEngine::Get().ChangeLevel(GameState::GamePlay);
-	//	}
-	//));
-
 	items.emplace_back(new MenuItem(
 		"Quit Game",
 		[]()
@@ -95,7 +81,7 @@ void MenuLevel::Tick(float deltaTime)
 		items[currentIndex]->onSelected();
 	}
 
-	if (Input::Get().GetKeyDown(VK_ESCAPE))
+	if (Input::Get().GetKeyDown(VK_ESCAPE) && GameEngine::Get().IsGameInitialized)
 	{
 		// 메뉴 나가기
 		GameEngine::Get().ChangeLevel(GameState::GamePlay);
@@ -107,8 +93,7 @@ void MenuLevel::Tick(float deltaTime)
 
 void MenuLevel::Draw()
 {
-
-	Renderer::Get().Submit("Sokoban Game", Vector2::Zero);
+	Renderer::Get().Submit("Path Finding Project", Vector2::Zero);
 
 	// 메뉴 아이템 출력.
 	for (int ix = 0; ix < static_cast<int>(items.size()); ++ix)

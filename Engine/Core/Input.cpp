@@ -98,6 +98,7 @@ namespace Wanted
 					{
 						// Set Mouse xPosition
 						mousePosition.x = record.Event.MouseEvent.dwMousePosition.X;
+						mousePosition.y = record.Event.MouseEvent.dwMousePosition.Y;
 
 						// xPosition 조정: 화면 안에 고정되도록.
 						mousePosition.x
