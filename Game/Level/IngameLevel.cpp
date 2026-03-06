@@ -61,11 +61,6 @@ std::vector<Vector2> IngameLevel::FindPath(
 			grid[start.y][start.x] = 0;
 		}
 
-		if (goal.y >= 0 && goal.y < static_cast<int>(grid.size())
-			&& goal.x >= 0 && goal.x < static_cast<int>(grid[0].size()))
-		{
-			grid[goal.y][goal.x] = 0;
-		}
 	}
 
 	return aStar.FindPath(start, goal, grid);
