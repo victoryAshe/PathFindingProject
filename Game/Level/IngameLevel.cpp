@@ -6,10 +6,8 @@
 #include "Actor/MouseTester.h"
 
 IngameLevel::IngameLevel()
+	: levelNavigation(this)
 {
-
-	screenSize = Vector2(GameEngine::Get().GetWidth(), GameEngine::Get().GetHeight());
-
 	// TODO: 지우기.
 	AddNewActor(new MouseTester());
 }
@@ -51,19 +49,29 @@ std::vector<Vector2> IngameLevel::FindPath(
 	const Vector2& goal
 )
 {
-	std::vector<std::vector<int>> grid = BuildNavigationGrid();
+	std::vector<std::vector<int>> navGrid = levelNavigation.BuildNavGrid();
+	return navigationController.FindPath(start, goal, navGrid);
+}
 
-	if (!grid.empty() && !grid[0].empty())
-	{
-		if (start.y >= 0 && start.y < static_cast<int>(grid.size())
-			&& start.x >= 0 && start.x < static_cast<int>(grid[0].size()))
-		{
-			grid[start.y][start.x] = 0;
-		}
+std::vector<Vector2> IngameLevel::FindPathToActor(
+	const Vector2& start, 
+	const Vector2& targetPosition
+)
+{
+	std::vector<std::vector<int>> navGrid = levelNavigation.BuildNavGrid();
 
-	}
+	// Actor와 인접한 칸 수집
+	const std::vector<Vector2> approachPositions =
+		levelNavigation.FindApproachPositions(navGrid, targetPosition);
 
-	return aStar.FindPath(start, goal, grid);
+	// Actor의 인접한 칸에 접근 불가능.
+	if (approachPositions.empty()) return {};
+
+	// 인접한 칸 목록에서 최적의 칸 선택.
+	const Vector2 selectedApproachPosition =
+		levelNavigation.SelectBestApproachPosition(start, approachPositions);
+
+	return navigationController.FindPath(start, selectedApproachPosition, navGrid);
 }
 
 bool IngameLevel::CanMove(
@@ -71,6 +79,9 @@ bool IngameLevel::CanMove(
 	const Wanted::Vector2& nextPosition, 
 	int sortingOrder)
 {
+	const Vector2 screenSize = GameEngine::Get().GetScreenSize();
+
+	// Exception Handling.
 	if (nextPosition.x < 0 || nextPosition.x >= screenSize.x
 		|| nextPosition.y < 0 || nextPosition.y >= screenSize.y)
 	{
@@ -94,37 +105,4 @@ bool IngameLevel::CanMove(
 	}
 
 	return true;
-}
-
-std::vector<std::vector<int>> IngameLevel::BuildNavigationGrid() const
-{
-	std::vector<std::vector<int>> grid(
-		screenSize.y,
-		std::vector<int>(screenSize.x, 0)
-	);
-
-	for (Actor* const actor : actors)
-	{
-		if (!actor || actor->DestroyRequested())
-		{
-			continue;
-		}
-
-		const Vector2 pos = actor->GetPosition();
-
-		if (pos.x < 0 || pos.x >= screenSize.x
-			|| pos.y < 0 || pos.y >= screenSize.y)
-		{
-			continue;
-		}
-
-		// MouseTester 같은 디버그용 Actor까지 막히면 불편하므로,
-		// 우선 sortingOrder가 0보다 큰 Actor만 장애물처럼 취급.
-		if (actor->GetSortingOrder() > 0)
-		{
-			grid[pos.y][pos.x] = 1;
-		}
-	}
-
-	return grid;
 }

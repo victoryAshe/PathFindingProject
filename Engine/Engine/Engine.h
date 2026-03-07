@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common/Common.h"
+#include "Math/Vector2.h"
 
 namespace Wanted
 {
@@ -43,6 +44,8 @@ namespace Wanted
 		
 		// 화면 높이 반환 함수.
 		inline int GetHeight() const { return setting.height; }
+
+		Vector2 const GetScreenSize() { return Vector2(setting.width, setting.height); }
 
 	protected:
 

@@ -102,6 +102,8 @@ xcopy $(SolutionDir)Assets\NPC\* $(OutDir)NPC\ /e /y</Command>
     <ClCompile Include="Level\MenuLevel.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Navigation\AStar.cpp" />
+    <ClCompile Include="Navigation\LevelNavigation.cpp" />
+    <ClCompile Include="Navigation\NavigationController.cpp" />
     <ClCompile Include="NPC\NPC.cpp" />
     <ClCompile Include="Dialogue\DialogueSession.cpp" />
     <ClCompile Include="Dialogue\DialogueTable.cpp" />
@@ -116,6 +118,8 @@ xcopy $(SolutionDir)Assets\NPC\* $(OutDir)NPC\ /e /y</Command>
     <ClInclude Include="Level\IngameLevel.h" />
     <ClInclude Include="Level\MenuLevel.h" />
     <ClInclude Include="Navigation\AStar.h" />
+    <ClInclude Include="Navigation\LevelNavigation.h" />
+    <ClInclude Include="Navigation\NavigationController.h" />
     <ClInclude Include="Navigation\Node.h" />
     <ClInclude Include="NPC\NPC.h" />
     <ClInclude Include="Dialogue\DialogueRow.h" />

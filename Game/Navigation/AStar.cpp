@@ -7,26 +7,10 @@ namespace Navigation
     {
     }
 
+    // 계산에 필요한 자료구조를 전부 지역변수로 대체했으므로,
+    // 메모리 관리를 하지 않아도 됨.
     AStar::~AStar()
     {
-        // 메모리 정리.
-        ClearLists();
-    }
-
-
-    void AStar::ClearLists()
-    {
-        for (Node* node : openList)
-        {
-            SafeDelete(node);
-        }
-        openList.clear();
-
-        for (Node* node : closedList)
-        {
-            SafeDelete(node);
-        }
-        closedList.clear();
     }
 
     std::vector<Vector2> AStar::FindPath(
@@ -35,8 +19,6 @@ namespace Navigation
         const std::vector<std::vector<int>>& grid
     )
     {
-        ClearLists();
-
         // Exception Handling.
         if (grid.empty() || grid[0].empty())
         {
@@ -55,15 +37,46 @@ namespace Navigation
             return {};
         }
 
+        const int height = static_cast<int>(grid.size());
+        const int width = static_cast<int>(grid[0].size());
+
+        //std::priority_queue<
+        //    OpenNode,                   // Q안에 들어갈 자료 구조.
+        //    std::vector<OpenNode>,      // Q를 담을 형태.
+        //    CompareOpenNode             // Q의 정렬 방법.
+        //> openQueue;
+        std::priority_queue<OpenNode, std::vector<OpenNode>, CompareOpenNode> openQueue;
+
+        // 해당 cell을 방문했는지 처리.
+        // closed[y][x].
+        std::vector<std::vector<bool>> closed(height, std::vector<bool>(width, false));
+
+        // 해당 cell의 bestCost 저장 배열.
+        // bestGCost[y][x].
+        std::vector<std::vector<float>> bestGCost(height, std::vector<float>(width, FLT_MAX));
+
+        // 각 node의 parent를 저장하는 배열
+        // union_find 할 때 parent 배열 만들 때를 생각하면 됨
+        // 다만, 여기서는 "path"가 중요하므로 부모를 통일하지 않는다.
+        // parent[y][x].
+        std::vector<std::vector<Vector2>> parent(
+            height,
+            std::vector<Vector2>(width, Vector2(-1, -1))
+        );
+
+
         // 시작/목표 노드 저장.
-        startNode = new Node(start);
-        goalNode = new Node(goal);
+        OpenNode startNode;
+        startNode.position = start;
+        startNode.gCost = 0.0f;
+        startNode.hCost = CalculateHeuristic(start, goal);
+        startNode.fCost = startNode.gCost + startNode.hCost;
 
-        startNode->hCost = CalculateHeuristic(startNode, goalNode);
-        startNode->fCost = startNode->gCost + startNode->hCost;
+        bestGCost[start.y][start.x] = 0.0f;
+        openQueue.push(startNode);
 
-        // startNode를 openList에 추가 및 탐색 시작.
-        openList.emplace_back(startNode);
+        // 직선 비용 상수.
+        const float straightCost = 1.0f;
 
         // 대각선 비용 상수.
         const float diagonalcost = 1.41421345f;
@@ -72,159 +85,116 @@ namespace Navigation
         std::vector<Direction> directions =
         {
             // 하상우좌 이동.
-            { 0, 1, 1.0f }, { 0, -1, 1.0f }, {1, 0, 1.0f }, {-1, 0, 1.0f},
+            { 0, 1, straightCost}, { 0, -1, straightCost}, 
+            {1, 0, straightCost},  {-1, 0, straightCost},
+            
             // 대각선 이동.
-            { 1, 1, diagonalcost }, { 1, -1, diagonalcost },
+            { 1, 1, diagonalcost },  { 1, -1, diagonalcost },
             { -1, 1, diagonalcost }, { -1, -1, diagonalcost },
         };
 
         // 탐색 가능한 위치가 있으면 계속 진행.
-        while (!openList.empty())
+        while (!openQueue.empty())
         {
-            // currentNode를 현재 openList 중 fCost가 가장 낮은 노드로 설정
-            // 그를 위한 선형 탐색.
-            Node* currentNode = openList[0];
+            OpenNode current = openQueue.top();
+            openQueue.pop();
 
-            for (Node* const node : openList)
+            const int curX = current.position.x;
+            const int curY = current.position.y;
+
+            // visit 처리된 cell이라면 넘김
+            if (closed[curY][curX]) continue;
+
+            // visit 처리.
+            closed[curY][curX] = true;
+
+            // Goal에 도착했다면:
+            if (curX == goal.x && curY == goal.y)
             {
-                if (node->fCost < currentNode->fCost)
-                {
-                    currentNode = node;
-                }
-                // tie breaker: fCost가 동점일 때 처리
-                // 처리 안해도 탐색은 잘 되지만,
-                // 해주는 것보다 성능이 떨어짐
-                else if(node->fCost == currentNode->fCost 
-                    && node->hCost < currentNode->hCost)
-                {
-                    currentNode = node;
-                }
+                // Path를 만들어 넘김
+                return ConstructPath(start, goal, parent);
             }
 
-            // 지금 openList에서 뽑은 currentNode가 목표Node라면,
-            if (IsDestination(currentNode))
-            {
-                // 경로 반환 후 종료.
-                return ConstructPath(currentNode);
-            }
-
-            // 방문 처리를 위해 openList에서 제거.
-            for (auto it = openList.begin(); it != openList.end(); ++it)
-            {
-                if (*it == currentNode)
-                {
-                    openList.erase(it);
-                    break;
-                }
-            }
-
-            closedList.emplace_back(currentNode);
-
-            // 이웃 노드 방문(탐색)
             for (const Direction& direction : directions)
             {
-                // 다음에 이동할 위치(이웃 Node 위치).
-                int newX = currentNode->position.x + direction.x;
-                int newY = currentNode->position.y + direction.y;
+                const int newX = curX + direction.x;
+                const int newY = curY + direction.y;
 
-                // 탐색을 안해도 되는 상황인지 검사.
-                // 1. grid 범위 내에 없는 위치
-                if (!IsInRange(newX, newY, grid))
-                {
-                    continue;
-                }
+                // 탐색 처리 안해도 되는 상황인지 검사.
+                if (!IsInRange(newX, newY, grid)) continue;
 
-                // 2. 장애물이 존재하는 위치.
-                if (IsBlocked(newX, newY, grid))
-                {
-                    continue;
-                }
+                if (IsBlocked(newX, newY, grid)) continue;
 
-                // 3. 대각선이면 이동 가능한지 여부. (직선이면 true)
-                if (!CanMoveDiagonal(currentNode->position, newX, newY, grid))
-                {
-                    continue;
-                }
+                // 직선은 true, 대각선이면 움직일 수 있는 경우에만 true.
+                if (!CanMoveDiagonal(current.position, newX, newY, grid)) continue;
 
-                // currentNode를 기준으로 새 gCost 계산.
-                const float newGCost = currentNode->gCost + direction.cost;
+                // visit 처리된 cell이라면 넘김.
+                if (closed[newY][newX]) continue;
 
-                // 갈 수는 있지만, 이미 방문한 곳인지 확인.
-                // 이 때, 해당 newGCost를 넣어주는 이유는 더 적은 cost의 노드로 갱신해주기 위함.
-                if (HasVisited(newX, newY, newGCost))
-                {
-                    continue;
-                }
+                const float newGCost = current.gCost + direction.cost;
 
-                // 방문을 위한 이웃 노드 생성.
-                Node* neighbourNode = new Node(Vector2(newX, newY), currentNode);
-                // 비용 계산.
-                neighbourNode->gCost = newGCost;
-                neighbourNode->hCost = CalculateHeuristic(neighbourNode, goalNode);
-                neighbourNode->fCost = neighbourNode->gCost + neighbourNode->hCost;
+                // 기존 저장된 경로보다 비용이 높다면 넘김.
+                if (newGCost >= bestGCost[newY][newX]) continue;
 
-                // neighbourNode가 openList에 있는지 확인.
-                Node* openListNode = nullptr;
-                for (Node* const node : openList)
-                {
-                    // 위치만 비교해서 openList에 넣을지 여부 확인.
-                    if (*node == *neighbourNode)
-                    {
-                        openListNode = node;
-                        break;
-                    }
-                }
+                // bestGCost 갱신.
+                bestGCost[newY][newX] = newGCost;
+                parent[newY][newX] = current.position;
 
-                // 위에서 neighbourNode와 같은 위치의 node가 openList에 있었으면:
-                if (openListNode)
-                {
-                    // neighbourNode가 더 좋은 비용일 때만 바꿔줌
-                    if (neighbourNode->gCost < openListNode->gCost)
-                    {
-                        // 부모 노드 업데이트.
-                        openListNode->parentNode = neighbourNode->parentNode;
-                        // 비용 업데이트.
-                        openListNode->gCost = neighbourNode->gCost;
-                        openListNode->hCost = neighbourNode->hCost;
-                        openListNode->fCost = neighbourNode->fCost;
-                    }
+                OpenNode nextNode;
+                nextNode.position = Vector2(newX, newY);
+                nextNode.gCost = newGCost;
+                nextNode.hCost = CalculateHeuristic(nextNode.position, goal);
+                nextNode.fCost = nextNode.gCost + nextNode.hCost;
 
-                    SafeDelete(neighbourNode);
-                    continue;
-                }
-                openList.emplace_back(neighbourNode);
- 
+                openQueue.push(nextNode);
             }
         }
 
+        // Goal까지 가는 경로를 찾지 못한 경우.
         return {};
     }
 
-    std::vector<Vector2> AStar::ConstructPath(Node* goalNode) const
+    std::vector<Vector2> AStar::ConstructPath(
+        const Vector2& start,
+        const Vector2& goal,
+        const std::vector<std::vector<Vector2>>& parent
+    ) const
     {
         std::vector<Vector2> path;
 
-        // 역추적하면서 path에 채우기.
-        Node* current = goalNode;
-        while (current)
+        // goal에서부터 역추적
+        Vector2 current = goal;
+        path.emplace_back(current);
+
+        // current에 닿기 전까지.
+        while (!(current.x == start.x && current.y == start.y))
         {
-            path.emplace_back(current->position);
-            current = current->parentNode;
+            const Vector2 prev = parent[current.y][current.x];
+
+            // Exception Handling
+            // 1. parent chain is broken 
+            // || 2. start == goal.
+            if (prev.x == -1 && prev.y == -1)
+            {
+                return {};
+            }
+
+            current = prev;
+            path.emplace_back(current);
         }
 
-        // 이렇게 얻은 결과는 순서가 거꾸로.
-        // 그래서 거꾸로 다시 정렬이 필요함.
+        // 역추적한 것이므로, 재정렬.
         std::reverse(path.begin(), path.end());
         return path;
     }
 
-    float AStar::CalculateHeuristic(const Node* currentNode, const Node* goalNode)
+    float AStar::CalculateHeuristic(const Vector2& current, const Vector2& goal) const
     {
         const float straightCost = 1.0f;
         const float diagonalCost = 1.41421356f;
 
-        const int dx = std::abs(currentNode->position.x - goalNode->position.x);
-        const int dy = std::abs(currentNode->position.y - goalNode->position.y);
+        const int dx = std::abs(current.x - goal.x);
+        const int dy = std::abs(current.y - goal.y);
 
         const int minDist = (dx < dy) ? dx : dy;
         const int maxDist = (dx > dy) ? dx : dy;
@@ -232,7 +202,7 @@ namespace Navigation
         return diagonalCost * minDist + straightCost * (maxDist - minDist);
     }
 
-    bool AStar::IsInRange(int x, int y, const std::vector<std::vector<int>>& grid)
+    bool AStar::IsInRange(int x, int y, const std::vector<std::vector<int>>& grid) const
     {
         return y >= 0 && y < static_cast<int>(grid.size())
             && x >= 0 && x < static_cast<int>(grid[0].size());
@@ -243,39 +213,21 @@ namespace Navigation
         return grid[y][x] == 1;
     }
 
-    bool AStar::HasVisited(int x, int y, float gCost)
-    {
-        // 닫힌 리스트에 이미 같은 위치가 있고, 
-        // 비용이 더 낮으면 방문했다고 판단.
-        for (Node* const node : closedList)
-        {
-            if (node->position.x == x && node->position.y == y
-                && node->gCost <= gCost)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    bool AStar::IsDestination(const Node* node) const
-    {
-        return node
-            && goalNode
-            && node->position.x == goalNode->position.x
-            && node->position.y == goalNode->position.y;
-    }
-    bool AStar::CanMoveDiagonal(const Vector2& current, int nextX, int nextY, const std::vector<std::vector<int>>& grid)
+    bool AStar::CanMoveDiagonal(
+        const Vector2& current, 
+        int nextX, int nextY, 
+        const std::vector<std::vector<int>>& grid
+    ) const
     {
         const int dx = nextX - current.x;
         const int dy = nextY - current.y;
 
-        if (std::abs(dx) != 1 || std::abs(dy) != 1)
-        {
-            return true;
-        }
+        // 직선인 경우.
+        if (std::abs(dx) != 1 || std::abs(dy) != 1) return true;
 
+        // 대각선인 경우
+        // 이동 가능한 것만 true로 반환하기 위한 계산.
+        // : 가로와 세로로 막혀있는지.
         const int sideX = current.x + dx;
         const int sideY = current.y;
 

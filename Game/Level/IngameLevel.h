@@ -2,7 +2,8 @@
 
 #include "Level/Level.h"
 #include "Interface/ICanActorMove.h"
-#include "Navigation/AStar.h"
+#include "Navigation/NavigationController.h"
+#include "Navigation/LevelNavigation.h"
 
 using namespace Wanted;
 
@@ -14,18 +15,30 @@ class IngameLevel
 
 	
 public:
-	// 나중에 추가할 것이 생기면 생성자/소멸자 수정.
 	IngameLevel();
 	~IngameLevel();
 
 	virtual void Tick(float deltaTime) override;
 	virtual void Draw() override;
 
-	// 경로 찾아주는 용도.
+	// 경로 질의.
 	std::vector<Vector2> FindPath(
 		const Vector2& start,
 		const Vector2& goal
 	);
+
+	// 특정 Actor 추적 경로 질의
+	// : 해당 Actor의 인접한 칸을 선택해 경로 반환.
+	std::vector<Vector2> FindPathToActor(
+		const Vector2& start,
+		const Vector2& targetPosition
+	);
+
+	const std::vector<Actor*>& GetActors() const
+	{
+		return actors;
+	}
+
 
 private:
 
@@ -36,15 +49,10 @@ private:
 		int sortingOrder
 	)override;
 
-	// Navigation에 전달할 grid를 생성.
-	std::vector<std::vector<int>> BuildNavigationGrid() const;
-
 private:
 
-	// EngineSetting의 screenSize를 갖고 옴.
-	Vector2 screenSize;
-
-	// AStar를 멤버로 갖도록 함.
-	Navigation::AStar aStar;
+	// PathFinding을 위한 class. 
+	Navigation::LevelNavigation levelNavigation;
+	Navigation::NavigationController navigationController;
 };
 
