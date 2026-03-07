@@ -3,13 +3,10 @@
 #include "Engine/GameEngine.h"
 
 #include "Actor/Enemy.h"
-#include "Actor/MouseTester.h"
 
 IngameLevel::IngameLevel()
 	: levelNavigation(this)
 {
-	// TODO: Áö¿ì±â.
-	AddNewActor(new MouseTester());
 }
 
 IngameLevel::~IngameLevel()
