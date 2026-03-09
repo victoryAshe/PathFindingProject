@@ -64,9 +64,13 @@ private:
 	void CreateEnemy(const Vector2 position);
 	void CreateWall(const Vector2 position);
 
-private:
+	void ShowPlayerUI();
 
+private:
 	Player* player = nullptr;
+
+	char playerUIstring[128] = {};
+	
 
 	// PathFinding¿ª ¿ß«— class. 
 	Navigation::LevelNavigation levelNavigation;

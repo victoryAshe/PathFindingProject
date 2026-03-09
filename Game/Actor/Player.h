@@ -17,6 +17,9 @@ protected:
 	virtual void Tick(float deltaTime) override;
 	virtual void Draw() override;
 
-private:
-};
+public:
+	int hp = 3;
 
+private:
+
+};

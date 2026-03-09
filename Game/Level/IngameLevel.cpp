@@ -3,7 +3,6 @@
 #include "Engine/GameEngine.h"
 #include "Render/Renderer.h"
 
-
 // Actor
 #include "Actor/Player.h"
 #include "Actor/Enemy.h"
@@ -56,6 +55,8 @@ void IngameLevel::Tick(float deltaTime)
 void IngameLevel::Draw()
 {
 	super::Draw();
+
+	ShowPlayerUI();
 }
 
 std::vector<Vector2> IngameLevel::FindPath(
@@ -126,6 +127,25 @@ void IngameLevel::CreateWall(const Vector2 position)
 {
 	if (position == player->GetPosition()) return;
 	AddNewActor(new Wall(position));
+}
+
+void IngameLevel::ShowPlayerUI()
+{
+	static const char* playerHPstring = "PlayerHP: ";
+	static const int len = static_cast<int>(strlen(playerHPstring)) +1;
+	static char heart[1];
+	heart[0] = 3;
+	Renderer::Get().Submit(playerHPstring, Vector2(1, 1), Color::White, 100);
+	
+	for (int i = 0; i < player->hp; ++i)
+	{
+		Renderer::Get().Submit(
+			heart,
+			Vector2(len + i, 1),
+			Color::Red,
+			100
+		);
+	}
 }
 
 bool IngameLevel::CanMove(
