@@ -43,6 +43,15 @@ public:
 		Vector2* outSelectedApproachPosition
 	);
 
+	// Enemy가 Attack할 수 있는지 질의.
+	// 실제 게임 규칙은 LevelNavigation에서 처리하도록 넘김.
+	// (좌표/벽 판정 등).
+	bool CanAttackFromPosition(
+		const Vector2& attackPosition,
+		const Vector2& targetPosition,
+		int attackRange
+	) const;
+
 	void DrawPath(std::vector<Vector2> const path);
 
 	// ICanActorMove Interface를 받아서 override.
@@ -51,7 +60,7 @@ public:
 		const Wanted::Vector2& nextPosition,
 		int sortingOrder
 	)override;
-
+	
 	// Getter.
 	const std::vector<Actor*>& GetActors() const { return actors; }
 	

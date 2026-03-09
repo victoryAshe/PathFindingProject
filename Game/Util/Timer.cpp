@@ -25,3 +25,9 @@ void Timer::SetTargetTime(float newTargetTime)
 {
 	targetTime = newTargetTime;
 }
+
+void Timer::Restart(float newTargetTime)
+{
+	SetTargetTime(newTargetTime);
+	Reset();
+}

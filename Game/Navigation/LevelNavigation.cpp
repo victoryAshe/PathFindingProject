@@ -224,4 +224,20 @@ namespace Navigation
 		return max(deltaX, deltaY) <= attackRange;
 	}
 
+
+	bool LevelNavigation::CanAttackFromPosition(
+		const Vector2& attackPosition,
+		const Vector2& targetPosition,
+		int attackRange
+	) const
+	{
+		// Target이 AttackRange 안에 없으면 false.
+		if (!IsWithinAttackRange(attackPosition, targetPosition, attackRange))
+		{
+			return false;
+		}
+
+		// AttackActor <=> TargetActor 사이에 벽이 있는지 검사.
+		return HasClearLineToTarget(attackPosition, targetPosition);
+	}
 }

@@ -2,43 +2,51 @@
 
 #include "Actor/Actor.h"
 
+#include "AI/EnemyMovementController.h"
+#include "AI/EnemyStateMachine.h"
+
 using namespace Wanted;
 
-constexpr int EnemySortingOrder = 5;
-
 class IngameLevel;
+
+constexpr int EnemySortingOrder = 5;
 
 class Enemy : public Actor
 {
 	RTTI_DECLARATIONS(Enemy, Actor);
 
+private:
+
 public:
 	explicit Enemy(const Vector2& newPosition);
 
+	// ========== Damaged ========== 
 	// 데미지 받았을 때 처리할 함수.
-	void OnDamaged();
+	void OnDamaged(int damage);
 
 
+	// ========== Attack ========== 
+	// Player가 AttackRange 안에 있는지를 반환.ㄴ
+	bool CanAttackPlayer() const;
+
+	// Attack 실행.
+	void Attack();
+
+
+	// ========== Update Member ========== 
+	void UpdateMovement(float deltaTime);
+	void ResetMovement();
+	void DrawMovementPath() const;
+
+
+	// ========== Getter ========== 
+	IngameLevel* GetIngameLevel() const { return owningIngameLevel; }
+	int GetAttackRange() const { return attackRange; }
+	
 protected:
 	virtual void Tick(float deltaTime) override;
 
 	virtual void SetOwner(Level* newOwner) override;
-
-private:
-	// 경로 탐색 실패했을 경우에, 재탐색 시간을 벌기.
-	bool CanRequestPath(float deltaTime);
-
-	// 재탐색 시 navigation 관련 cahced member들을 초기화.
-	void ResetNavigationState();
-
-	// 재탐색.
-	bool RequestPath(IngameLevel* level);
-
-	// 이동.
-	void Move(float deltaTime);
-
-	// Path 시각화.
-	void DrawCurrentPath() const;
 
 private:
 	IngameLevel* owningIngameLevel = nullptr;
@@ -46,29 +54,14 @@ private:
 	int hp = 0;
 	
 	// Attack.
-	bool canAttack = false;
+	int attackPower = 1;
 	int attackRange = 1;
 	
-	// Navigation 관련.
-	bool hasCachedApproachPosition = false;
-	Vector2 cachedApproachPosition = Vector2(-1, -1);
 
-	// navigation 관련 cahcing.
-	std::vector<Vector2> cachedPath;
-	size_t nextPathIndex = 1;
+	// State 제어.
+	EnemyStateMachine stateMachine;
 
-
-	// 재탐색 주기 제어.
-	// 이미 path가 있는 enemy는 0.25초마다 새 path 재탐색 허용.
-	float repathIntervalSeconds = 0.25f;
-	float repathCooldownSeconds = 0.0f;
-
-	// 길이 막히면 재시도할 시간
-	float blockedRepathIntervalSeconds = 0.8f;
-	
-
-	// 이동 속도 제어.
-	float moveSpeed = 3.0f;		// 초당 이동하는 칸의 수.
-	float moveStepAccumulator = 0.0f;
+	// Movement 제어: Navigation까지.
+	EnemyMovementController movementController;
 };
 

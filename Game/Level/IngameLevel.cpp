@@ -168,7 +168,7 @@ void IngameLevel::ProcessCollisionPlayerBulletAndEnemy()
 			// AABB 겹침 판정.
 			if (bullet->TestIntersect(enemy))
 			{
-				enemy->OnDamaged();
+				enemy->OnDamaged(player->attackPower);
 				bullet->Destroy();
 
 				// 점수 추가.
@@ -234,6 +234,15 @@ bool IngameLevel::CanMove(
 	}
 
 	return true;
+}
+
+bool IngameLevel::CanAttackFromPosition(const Vector2& attackPosition, const Vector2& targetPosition, int attackRange) const
+{
+	return levelNavigation.CanAttackFromPosition(
+		attackPosition,
+		targetPosition,
+		attackRange
+	);
 }
 
 void IngameLevel::DrawPath(std::vector<Vector2> const path)

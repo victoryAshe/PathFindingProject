@@ -33,9 +33,14 @@ namespace Navigation
 			const std::vector<Vector2>& candidatePositions
 		) const;
 
-
 		bool IsWithinAttackRange(
 			const Vector2& currentPosition,
+			const Vector2& targetPosition,
+			int attackRange
+		) const;
+
+		bool CanAttackFromPosition(
+			const Vector2& attackPosition,
 			const Vector2& targetPosition,
 			int attackRange
 		) const;

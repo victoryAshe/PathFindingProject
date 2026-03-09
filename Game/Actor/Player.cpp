@@ -14,6 +14,13 @@ Player::Player(const Vector2& position)
 	sortingOrder = playerSortingOrder;
 }
 
+void Player::OnDamaged(int damage)
+{
+	if (damage <= 0) return;
+
+	hp = max(hp - damage, 0);
+}
+
 void Player::SetOwner(Level* newOwner)
 {
 	super::SetOwner(newOwner);

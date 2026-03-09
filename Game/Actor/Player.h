@@ -16,6 +16,9 @@ class Player: public Actor
 public:
 	Player(const Vector2& position);
 
+	// ÇÇ°Ý ½Ã Event.
+	void OnDamaged(int damage);
+
 protected:
 	virtual void SetOwner(Level* newOwner) override;
 
@@ -35,6 +38,7 @@ private:
 
 
 public:
+	int attackPower = 1;
 	int hp = 3;
 
 private:

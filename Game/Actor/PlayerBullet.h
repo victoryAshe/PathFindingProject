@@ -7,7 +7,7 @@
 
 using namespace Wanted;
 
-constexpr int PlayerBulletSortingOrder = 15;
+constexpr int PlayerBulletSortingOrder = 9;
 
 class PlayerBullet : public Actor
 {
