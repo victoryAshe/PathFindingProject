@@ -2,7 +2,6 @@
 
 #include "Level/IngameLevel.h"
 
-
 Enemy::Enemy(const Vector2& newPosition)
 	: super("E", newPosition, Color::Blue)
 {
@@ -19,13 +18,31 @@ void Enemy::Tick(float deltaTime)
 		return;
 	}
 
-	// 테스트용 목표 지점
-	Vector2 goal(0, 0);
 
-	std::vector<Vector2> path = level->FindPath(GetPosition(), goal);
+	Vector2 selectedApproachPosition(-1, -1);
 
-	if (path.size() >= 2)
+	std::vector<Vector2> path = level->FindPathToActor(
+		GetPosition(),
+		level->GetPlayerActor()->GetPosition(),
+		attackRange,
+		hasCahcedPosition ? &cachedApproachPosition : nullptr,
+		&selectedApproachPosition
+	);
+
+	if (path.empty())
 	{
-		SetPosition(path[1]);
+		hasCahcedPosition = false;
+		cachedApproachPosition = Vector2(-1, -1);
+		return;
 	}
+
+	hasCahcedPosition = true;
+	cachedApproachPosition = selectedApproachPosition;
+
+	if (path.size() < 2)
+	{
+		return;
+	}
+
+	SetPosition(path[1]);
 }

@@ -21,14 +21,23 @@ namespace Navigation
 
 		std::vector<Vector2> FindApproachPositions(
 			const std::vector<std::vector<int>>& navGrid,
-			const Vector2& targetPosition
+			const Vector2& targetPosition,
+			const int atkDist = 1
 		) const;
 
-		Vector2 SelectBestApproachPosition(
+		// 후보 정렬 전용.
+		// 최종 path 선택은 NavigationController가 담당.
+		std::vector<Vector2> SortApproachPositionsByHeuristic(
 			const Vector2& start,
 			const std::vector<Vector2>& candidatePositions
 		) const;
 
+
+		bool IsWithinAttackRange(
+			const Vector2& currentPosition,
+			const Vector2& targetPosition,
+			int attackRange
+		) const;
 
 	private:
 		bool IsTileWalkable(

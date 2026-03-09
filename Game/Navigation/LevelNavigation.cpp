@@ -3,7 +3,9 @@
 #include "Level/IngameLevel.h"
 #include "Actor/Actor.h"
 #include "Engine/GameEngine.h"
+
 #include <cassert>
+#include <algorithm>
 
 namespace Navigation
 {
@@ -74,23 +76,24 @@ namespace Navigation
 
 	std::vector<Vector2> LevelNavigation::FindApproachPositions(
 		const std::vector<std::vector<int>>& navGrid,
-		const Vector2& targetPosition
+		const Vector2& targetPosition,
+		const int atkDist 
 	) const
 	{
 		// 8방향.
 		static const Vector2 directions[8] =
 		{
 			// 상하좌우.
-			Vector2(0, 1),
-			Vector2(0, -1),
-			Vector2(1, 0),
-			Vector2(-1, 0),
+			Vector2(0, atkDist),
+			Vector2(0, -atkDist),
+			Vector2(atkDist, 0),
+			Vector2(-atkDist, 0),
 
 			// 대각선.
-			Vector2(1, 1),
-			Vector2(1, -1),
-			Vector2(-1, 1),
-			Vector2(-1, -1)
+			Vector2(atkDist, atkDist),
+			Vector2(atkDist, -atkDist),
+			Vector2(-atkDist, atkDist),
+			Vector2(-atkDist, -atkDist)
 		};
 
 		std::vector<Vector2> candidatePositions;
@@ -108,38 +111,55 @@ namespace Navigation
 		return candidatePositions;
 	}
 
-	Vector2 LevelNavigation::SelectBestApproachPosition(
-		const Vector2& start,
-		const std::vector<Vector2>& candidatePositions
+	std::vector<Vector2> LevelNavigation::SortApproachPositionsByHeuristic(
+		const Vector2& startPosition,
+		const std::vector<Vector2>& approachCandidates
 	) const
 	{
-		if (candidatePositions.empty())
-		{
-			return Vector2(-1, -1);
-		}
+		std::vector<Vector2> sortedApproachCandidates = approachCandidates;
 
-		Vector2 bestPosition = candidatePositions[0];
-		float bestDistanceSq =
-			static_cast<float>(
-				(bestPosition.x - start.x) * (bestPosition.x - start.x) +
-				(bestPosition.y - start.y) * (bestPosition.y - start.y));
-
-		for (size_t i = 1; i < candidatePositions.size(); ++i)
-		{
-			const Vector2& currentPosition = candidatePositions[i];
-
-			const float currentDistanceSq =
-				static_cast<float>(
-					(currentPosition.x - start.x) * (currentPosition.x - start.x) +
-					(currentPosition.y - start.y) * (currentPosition.y - start.y));
-
-			if (currentDistanceSq < bestDistanceSq)
+		std::sort(
+			sortedApproachCandidates.begin(),
+			sortedApproachCandidates.end(),
+			[&startPosition](const Vector2& candidateA, const Vector2& candidateB)
 			{
-				bestPosition = currentPosition;
-				bestDistanceSq = currentDistanceSq;
-			}
-		}
+				const int distanceToCandidateASq =
+					(candidateA.x - startPosition.x) * (candidateA.x - startPosition.x) +
+					(candidateA.y - startPosition.y) * (candidateA.y - startPosition.y);
 
-		return bestPosition;
+				const int distanceToCandidateBSq =
+					(candidateB.x - startPosition.x) * (candidateB.x - startPosition.x) +
+					(candidateB.y - startPosition.y) * (candidateB.y - startPosition.y);
+
+				// startPosition 기준으로 더 가까운 접근 칸을 우선
+				if (distanceToCandidateASq != distanceToCandidateBSq)
+				{
+					return distanceToCandidateASq < distanceToCandidateBSq;
+				}
+
+				// tie breaker
+				if (candidateA.y != candidateB.y)
+				{
+					return candidateA.y < candidateB.y;
+				}
+
+				return candidateA.x < candidateB.x;
+			}
+		);
+
+		return sortedApproachCandidates;
 	}
+
+	bool LevelNavigation::IsWithinAttackRange(
+		const Vector2& currentPosition, 
+		const Vector2& targetPosition, 
+		int attackRange) const
+	{
+		const int deltaX = std::abs(currentPosition.x - targetPosition.x);
+		const int deltaY = std::abs(currentPosition.y - targetPosition.y);
+
+		// 현재 A*가 대각 이동을 허용하므로 체비쇼프 거리 기준이 가장 자연스럽다.
+		return max(deltaX, deltaY) <= attackRange;
+	}
+
 }

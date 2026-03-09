@@ -17,5 +17,8 @@ protected:
 	virtual void Tick(float deltaTime) override;
 
 private:
+	int attackRange = 3;
+	bool hasCahcedPosition = false;
+	Vector2 cachedApproachPosition = Vector2(-1, -1);
 };
 

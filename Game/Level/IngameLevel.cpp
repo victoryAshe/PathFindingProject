@@ -1,12 +1,19 @@
 #include "IngameLevel.h"
 #include "Core/Input.h"
 #include "Engine/GameEngine.h"
+#include "Render/Renderer.h"
 
+
+// Actor
+#include "Actor/Player.h"
 #include "Actor/Enemy.h"
+
 
 IngameLevel::IngameLevel()
 	: levelNavigation(this)
 {
+	player = new Player(Vector2(10, 10));
+	AddNewActor(player);
 }
 
 IngameLevel::~IngameLevel()
@@ -47,28 +54,55 @@ std::vector<Vector2> IngameLevel::FindPath(
 )
 {
 	std::vector<std::vector<int>> navGrid = levelNavigation.BuildNavGrid();
-	return navigationController.FindPath(start, goal, navGrid);
+	std::vector<Vector2> path = navigationController.FindPath(start, goal, navGrid);
+	DrawPath(path);
+	return path;
 }
 
 std::vector<Vector2> IngameLevel::FindPathToActor(
-	const Vector2& start, 
-	const Vector2& targetPosition
+	const Vector2& startPosition,
+	const Vector2& targetPosition,
+	const int attackRange,
+	const Vector2* preferredApproachPosition,
+	Vector2* outSelectedApproachPosition
 )
 {
+	// 이미 공격 가능한 거리 안이면 이동할 필요가 없다.
+	if (levelNavigation.IsWithinAttackRange(startPosition, targetPosition, attackRange))
+	{
+		if (outSelectedApproachPosition)
+		{
+			*outSelectedApproachPosition = startPosition;
+		}
+
+		return { startPosition };
+	}
+
 	std::vector<std::vector<int>> navGrid = levelNavigation.BuildNavGrid();
 
-	// Actor와 인접한 칸 수집
-	const std::vector<Vector2> approachPositions =
-		levelNavigation.FindApproachPositions(navGrid, targetPosition);
+	const std::vector<Vector2> approachCandidates =
+		levelNavigation.FindApproachPositions(navGrid, targetPosition, attackRange);
 
-	// Actor의 인접한 칸에 접근 불가능.
-	if (approachPositions.empty()) return {};
+	if (approachCandidates.empty())
+	{
+		return {};
+	}
 
-	// 인접한 칸 목록에서 최적의 칸 선택.
-	const Vector2 selectedApproachPosition =
-		levelNavigation.SelectBestApproachPosition(start, approachPositions);
+	const std::vector<Vector2> orderedApproachCandidates =
+		levelNavigation.SortApproachPositionsByHeuristic(startPosition, approachCandidates);
 
-	return navigationController.FindPath(start, selectedApproachPosition, navGrid);
+	std::vector<Vector2> path =
+		navigationController.FindShortestPathToAnyGoal(
+			startPosition,
+			orderedApproachCandidates,
+			navGrid,
+			preferredApproachPosition,
+			outSelectedApproachPosition
+		);
+
+	DrawPath(path);
+
+	return path;
 }
 
 bool IngameLevel::CanMove(
@@ -102,4 +136,19 @@ bool IngameLevel::CanMove(
 	}
 
 	return true;
+}
+
+void IngameLevel::DrawPath(std::vector<Vector2> const path)
+{
+	if (path.empty()) return;
+
+	for (const Vector2 pos : path)
+	{
+		Renderer::Get().Submit(
+			"*",
+			pos,
+			Color::Green,
+			1
+		);
+	}
 }
