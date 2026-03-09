@@ -17,8 +17,17 @@ protected:
 	virtual void Tick(float deltaTime) override;
 
 private:
+	void Move(float deltaTime);
+
+private:
+	bool canAttack = false;
 	int attackRange = 3;
-	bool hasCahcedPosition = false;
+
+	bool hasCachedApproachPosition = false;
 	Vector2 cachedApproachPosition = Vector2(-1, -1);
+
+	// 이동 속도 제어.
+	float moveSpeed = 3.0f;
+	float moveStepAccumulater = 0.0f;
 };
 
