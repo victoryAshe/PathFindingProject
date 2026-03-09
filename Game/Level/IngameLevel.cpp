@@ -35,7 +35,7 @@ void IngameLevel::Tick(float deltaTime)
 	}
 
 	ProcessCollisionPlayerBulletAndEnemy();
-	ProcessCollisionPlayerAndEnemyBullet();
+	ProcessCollisionPlayerAndEnemy();
 
 	// 마우스 왼쪽 input되면 Enemy spawn.
 	// TODO: 키 입력에 따라, 마우스 input 처리를 바꾸기.
@@ -52,7 +52,7 @@ void IngameLevel::Tick(float deltaTime)
 		Vector2 mousePosition = Input::Get().MousePosition();
 		CreateWall(mousePosition);
 		return;
-	}
+	} 
 }
 
 
@@ -180,7 +180,7 @@ void IngameLevel::ProcessCollisionPlayerBulletAndEnemy()
 	}
 }
 
-void IngameLevel::ProcessCollisionPlayerAndEnemyBullet()
+void IngameLevel::ProcessCollisionPlayerAndEnemy()
 {
 }
 
@@ -189,7 +189,7 @@ void IngameLevel::ShowPlayerUI()
 	static const char* playerHPstring = "PlayerHP: ";
 	static const int len = static_cast<int>(strlen(playerHPstring)) +1;
 	static char heart[1];
-	heart[0] = 3;
+	heart[0] = '\x03';
 	Renderer::Get().Submit(playerHPstring, Vector2(1, 1), Color::White, 100);
 	
 	for (int i = 0; i < player->hp; ++i)

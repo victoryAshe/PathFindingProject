@@ -47,7 +47,7 @@ private:
 	
 	// Attack.
 	bool canAttack = false;
-	int attackRange = 3;
+	int attackRange = 1;
 	
 	// Navigation ฐüทร.
 	bool hasCachedApproachPosition = false;
