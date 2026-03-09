@@ -96,6 +96,7 @@ xcopy $(SolutionDir)Assets\NPC\* $(OutDir)NPC\ /e /y</Command>
   <ItemGroup>
     <ClCompile Include="Actor\Enemy.cpp" />
     <ClCompile Include="Actor\Player.cpp" />
+    <ClCompile Include="Actor\PlayerBullet.cpp" />
     <ClCompile Include="Actor\Wall.cpp" />
     <ClCompile Include="Engine\GameEngine.cpp" />
     <ClCompile Include="Level\IngameLevel.cpp" />
@@ -108,10 +109,12 @@ xcopy $(SolutionDir)Assets\NPC\* $(OutDir)NPC\ /e /y</Command>
     <ClCompile Include="Dialogue\DialogueSession.cpp" />
     <ClCompile Include="Dialogue\DialogueTable.cpp" />
     <ClCompile Include="NPC\NpcTable.cpp" />
+    <ClCompile Include="Util\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor\Enemy.h" />
     <ClInclude Include="Actor\Player.h" />
+    <ClInclude Include="Actor\PlayerBullet.h" />
     <ClInclude Include="Actor\Wall.h" />
     <ClInclude Include="Engine\GameEngine.h" />
     <ClInclude Include="Interface\ICanActorMove.h" />
@@ -128,6 +131,7 @@ xcopy $(SolutionDir)Assets\NPC\* $(OutDir)NPC\ /e /y</Command>
     <ClInclude Include="NPC\NpcRow.h" />
     <ClInclude Include="NPC\NpcTable.h" />
     <ClInclude Include="Util\MessageEvent.h" />
+    <ClInclude Include="Util\Timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,6 +3,11 @@
 #include "Common/Common.h"
 #include "Math/Vector2.h"
 
+#define VK_W 0x57
+#define VK_A 0x41
+#define VK_S 0x53
+#define VK_D 0x44
+
 namespace Wanted 
 {
 	class WANTED_API Input

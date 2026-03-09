@@ -39,6 +39,8 @@ private:
 private:
 	IngameLevel* owningIngameLevel = nullptr;
 
+	int hp = 0;
+	
 	// Attack.
 	bool canAttack = false;
 	int attackRange = 3;

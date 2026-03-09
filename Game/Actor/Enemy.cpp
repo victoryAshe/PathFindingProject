@@ -1,11 +1,16 @@
 #include "Enemy.h"
 
 #include "Level/IngameLevel.h"
+#include "Util/Util.h"
 
 Enemy::Enemy(const Vector2& newPosition)
 	: super("E", newPosition, Color::Blue)
 {
 	sortingOrder = EnemySortingOrder;
+
+	hp = Util::Random(1, 5);
+	
+	ChangeImage(std::to_string(hp).c_str());
 }
 
 void Enemy::Tick(float deltaTime)
