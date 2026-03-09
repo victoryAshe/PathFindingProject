@@ -65,7 +65,6 @@ std::vector<Vector2> IngameLevel::FindPath(
 {
 	std::vector<std::vector<int>> navGrid = levelNavigation.BuildNavGrid();
 	std::vector<Vector2> path = navigationController.FindPath(start, goal, navGrid);
-	DrawPath(path);
 	return path;
 }
 
@@ -109,8 +108,6 @@ std::vector<Vector2> IngameLevel::FindPathToActor(
 			preferredApproachPosition,
 			outSelectedApproachPosition
 		);
-
-	DrawPath(path);
 
 	return path;
 }

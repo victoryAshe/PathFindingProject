@@ -43,20 +43,7 @@ public:
 		Vector2* outSelectedApproachPosition
 	);
 
-	const std::vector<Actor*>& GetActors() const
-	{
-		return actors;
-	}
-
-	// Getter.
-	Player* GetPlayerActor() const { return player; }
-
-
-private:
-
-	void MoveToMenu();
-	void CreateEnemy(const Vector2 position);
-	void CreateWall(const Vector2 position);
+	void DrawPath(std::vector<Vector2> const path);
 
 	// ICanActorMove Interface를 받아서 override.
 	virtual bool CanMove(
@@ -65,7 +52,17 @@ private:
 		int sortingOrder
 	)override;
 
-	void DrawPath(std::vector<Vector2> const path);
+	// Getter.
+	const std::vector<Actor*>& GetActors() const { return actors; }
+	
+	Player* GetPlayerActor() const { return player; }
+
+
+private:
+
+	void MoveToMenu();
+	void CreateEnemy(const Vector2 position);
+	void CreateWall(const Vector2 position);
 
 private:
 

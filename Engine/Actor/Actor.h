@@ -66,7 +66,7 @@ namespace Wanted
 		inline Vector2 GetPosition() const { return position; }
 
 		// Add/Read Ownership.
-		inline void SetOwner(Level* newOwner) { owner = newOwner; }
+		inline virtual void SetOwner(Level* newOwner) { owner = newOwner; }
 		inline Level* GetOwner() const { return owner; }
 
 		// Getter.
