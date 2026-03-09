@@ -2,6 +2,7 @@
 
 #include "Level/IngameLevel.h"
 #include "Util/Util.h"
+#include "Actor/EnemyDestroyEffect.h"
 
 Enemy::Enemy(const Vector2& newPosition)
 	: super("E", newPosition, Color::Blue)
@@ -11,6 +12,22 @@ Enemy::Enemy(const Vector2& newPosition)
 	hp = Util::Random(1, 5);
 	
 	ChangeImage(std::to_string(hp).c_str());
+}
+
+void Enemy::OnDamaged()
+{
+	if (--hp <= 0)
+	{
+		// 액터 제거.
+		Destroy();
+
+		// 이펙트 생성 (재생을 위해).
+		GetOwner()->AddNewActor(new EnemyDestroyEffect(position));
+	}
+	else
+	{
+		ChangeImage(std::to_string(hp).c_str());
+	}
 }
 
 void Enemy::Tick(float deltaTime)

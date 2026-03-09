@@ -64,13 +64,24 @@ private:
 	void CreateEnemy(const Vector2 position);
 	void CreateWall(const Vector2 position);
 
+	// 충돌 판정 처리 함수.
+	void ProcessCollisionPlayerBulletAndEnemy();
+	void ProcessCollisionPlayerAndEnemyBullet();
+
 	void ShowPlayerUI();
 
 private:
 	Player* player = nullptr;
 
+	// player 체력 출력용.
+	// TODO: 별도의 UI로 분리할 수 있으면 할 것.
 	char playerUIstring[128] = {};
-	
+
+	// 플레이어가 죽었는지 확인.
+	bool isPlayerDead = false;
+
+	// 플레이어가 죽은 위치 (Draw에서 처리하기 위해 Tick에서 저장).
+	Vector2 playerDeadPosition;
 
 	// PathFinding을 위한 class. 
 	Navigation::LevelNavigation levelNavigation;

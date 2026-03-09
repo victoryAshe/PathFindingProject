@@ -15,6 +15,10 @@ class Enemy : public Actor
 public:
 	explicit Enemy(const Vector2& newPosition);
 
+	// 데미지 받았을 때 처리할 함수.
+	void OnDamaged();
+
+
 protected:
 	virtual void Tick(float deltaTime) override;
 

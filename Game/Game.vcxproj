@@ -95,6 +95,7 @@ xcopy $(SolutionDir)Assets\NPC\* $(OutDir)NPC\ /e /y</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Actor\Enemy.cpp" />
+    <ClCompile Include="Actor\EnemyDestroyEffect.cpp" />
     <ClCompile Include="Actor\Player.cpp" />
     <ClCompile Include="Actor\PlayerBullet.cpp" />
     <ClCompile Include="Actor\Wall.cpp" />
@@ -113,6 +114,7 @@ xcopy $(SolutionDir)Assets\NPC\* $(OutDir)NPC\ /e /y</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor\Enemy.h" />
+    <ClInclude Include="Actor\EnemyDestroyEffect.h" />
     <ClInclude Include="Actor\Player.h" />
     <ClInclude Include="Actor\PlayerBullet.h" />
     <ClInclude Include="Actor\Wall.h" />

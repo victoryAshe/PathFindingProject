@@ -7,6 +7,7 @@
 #include "Actor/Player.h"
 #include "Actor/Enemy.h"
 #include "Actor/Wall.h"
+#include "Actor/PlayerBullet.h"
 
 
 IngameLevel::IngameLevel()
@@ -32,6 +33,9 @@ void IngameLevel::Tick(float deltaTime)
 		MoveToMenu();
 		return;
 	}
+
+	ProcessCollisionPlayerBulletAndEnemy();
+	ProcessCollisionPlayerAndEnemyBullet();
 
 	// 마우스 왼쪽 input되면 Enemy spawn.
 	// TODO: 키 입력에 따라, 마우스 input 처리를 바꾸기.
@@ -127,6 +131,57 @@ void IngameLevel::CreateWall(const Vector2 position)
 {
 	if (position == player->GetPosition()) return;
 	AddNewActor(new Wall(position));
+}
+
+void IngameLevel::ProcessCollisionPlayerBulletAndEnemy()
+{
+	// 플레이어 탄약과 적 액터 필터링.
+	std::vector<Actor*> bullets;
+	std::vector<Enemy*> enemies;
+
+	// 액터 필터링.
+	for (Actor* const actor : actors)
+	{
+		if (actor->IsTypeOf<PlayerBullet>())
+		{
+			bullets.emplace_back(actor);
+			continue;
+		}
+
+		if (actor->IsTypeOf<Enemy>())
+		{
+			enemies.emplace_back(actor->As<Enemy>());
+		}
+	}
+
+	// 판정 안해도 되는지 확인.
+	if (bullets.size() == 0 || enemies.size() == 0)
+	{
+		return;
+	}
+
+	// 충돌 판정.
+	for (Actor* const bullet : bullets)
+	{
+		for (Enemy* const enemy : enemies)
+		{
+			// AABB 겹침 판정.
+			if (bullet->TestIntersect(enemy))
+			{
+				enemy->OnDamaged();
+				bullet->Destroy();
+
+				// 점수 추가.
+				// TODO: EXP 처리.
+				//score += 1;
+				continue;
+			}
+		}
+	}
+}
+
+void IngameLevel::ProcessCollisionPlayerAndEnemyBullet()
+{
 }
 
 void IngameLevel::ShowPlayerUI()
