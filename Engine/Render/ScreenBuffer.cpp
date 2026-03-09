@@ -98,7 +98,7 @@ namespace Wanted
 		writeRegion.Bottom = static_cast<short>(screenSize.y - 1);
 
 		// Buffer에 전달 받은 글자 배열 설정.
-		WriteConsoleOutputA(
+		WriteConsoleOutputW(
 			buffer,
 			charInfo,
 			screenSize,

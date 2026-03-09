@@ -6,12 +6,7 @@
 
 namespace Wanted
 {
-	/*
-	* ~회사마다 있는 주석 틀~
-	* 작성자	: ㅇㅇㅇ
-	* 날짜	: 2026.02.03
-	* 내용	: Double Buffering에 사용할 Console Output Handle을 관리하는 클래스. 
-	*/
+	// Double Buffering에 사용할 Console Output Handle을 관리하는 클래스.
 	class ScreenBuffer
 	{
 	public:
