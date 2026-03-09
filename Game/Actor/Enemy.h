@@ -4,7 +4,7 @@
 
 using namespace Wanted;
 
-const int EnemySortingOrder = 5;
+constexpr int EnemySortingOrder = 5;
 
 class Enemy : public Actor
 {
@@ -23,6 +23,7 @@ private:
 	bool canAttack = false;
 	int attackRange = 3;
 
+	
 	bool hasCachedApproachPosition = false;
 	Vector2 cachedApproachPosition = Vector2(-1, -1);
 

@@ -19,10 +19,11 @@ namespace Navigation
 	public:
 		std::vector<std::vector<int>> BuildNavGrid() const;
 
+
 		std::vector<Vector2> FindApproachPositions(
 			const std::vector<std::vector<int>>& navGrid,
 			const Vector2& targetPosition,
-			const int atkDist = 1
+			const int atkRange = 1
 		) const;
 
 		// 후보 정렬 전용.
@@ -44,6 +45,14 @@ namespace Navigation
 			const std::vector<std::vector<int>>& navGrid,
 			const Vector2& tilePosition
 		) const;
+
+		bool IsWallAtPosition(const Vector2& tilePosition) const;
+
+		bool HasClearLineToTarget(
+			const Vector2& attackPosition,
+			const Vector2& targetPosition
+		) const;
+
 
 	private:
 		const IngameLevel* level = nullptr;

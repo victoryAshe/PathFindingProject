@@ -54,6 +54,10 @@ public:
 
 private:
 
+	void MoveToMenu();
+	void CreateEnemy(const Vector2 position);
+	void CreateWall(const Vector2 position);
+
 	// ICanActorMove Interface를 받아서 override.
 	virtual bool CanMove(
 		const Wanted::Vector2& curPositon,

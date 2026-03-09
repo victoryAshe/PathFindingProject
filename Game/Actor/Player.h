@@ -4,6 +4,7 @@
 
 using namespace Wanted;
 
+constexpr int playerSortingOrder = 10;
 class Player: public Actor
 {
 	RTTI_DECLARATIONS(Player, Actor)
@@ -17,6 +18,5 @@ protected:
 	virtual void Draw() override;
 
 private:
-	int playerSortingOrder = 10;
 };
 

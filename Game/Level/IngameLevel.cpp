@@ -30,24 +30,24 @@ void IngameLevel::Tick(float deltaTime)
 	if (Input::Get().GetKeyDown(VK_ESCAPE))
 	{
 		// 메뉴 활성화.
-		GameEngine::Get().ChangeLevel(GameState::Menu);
+		MoveToMenu();
 		return;
 	}
 
-	// 마우스 input되면 적 spawn되도록 처리.
+	// 마우스 왼쪽 input되면 Enemy spawn.
 	// TODO: 키 입력에 따라, 마우스 input 처리를 바꾸기.
 	if (Input::Get().GetMouseButtonDown(0))
 	{
 		Vector2 mousePosition = Input::Get().MousePosition();
-		AddNewActor(new Enemy(mousePosition));
+		CreateEnemy(mousePosition);
 		return;
 	}
 
+	// 마우스 오른쪽 input되면 Wall Spawn.
 	if (Input::Get().GetMouseButtonDown(1))
 	{
 		Vector2 mousePosition = Input::Get().MousePosition();
-		if (mousePosition == player->GetPosition()) return;
-		AddNewActor(new Wall(mousePosition));
+		CreateWall(mousePosition);
 		return;
 	}
 }
@@ -113,6 +113,22 @@ std::vector<Vector2> IngameLevel::FindPathToActor(
 	DrawPath(path);
 
 	return path;
+}
+
+void IngameLevel::MoveToMenu()
+{
+	GameEngine::Get().ChangeLevel(GameState::Menu);
+}
+
+void IngameLevel::CreateEnemy(const Vector2 position)
+{
+	AddNewActor(new Enemy(position));
+}
+
+void IngameLevel::CreateWall(const Vector2 position)
+{
+	if (position == player->GetPosition()) return;
+	AddNewActor(new Wall(position));
 }
 
 bool IngameLevel::CanMove(

@@ -3,6 +3,7 @@
 #include "Level/IngameLevel.h"
 #include "Actor/Actor.h"
 #include "Engine/GameEngine.h"
+#include "Actor/Wall.h"
 
 #include <cassert>
 #include <algorithm>
@@ -74,26 +75,80 @@ namespace Navigation
 		return navGrid[tilePosition.y][tilePosition.x] == 0;
 	}
 
+	bool LevelNavigation::IsWallAtPosition(const Vector2& tilePosition) const
+	{
+		if (!level)
+		{
+			return false;
+		}
+
+		const std::vector<Actor*>& actors = level->GetActors();
+
+		for (Actor* const actor : actors)
+		{
+			if (!actor || actor->DestroyRequested())
+			{
+				continue;
+			}
+
+			if (actor->GetPosition() != tilePosition)
+			{
+				continue;
+			}
+
+			if (actor->GetSortingOrder() == wallSortingOrder)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool LevelNavigation::HasClearLineToTarget(const Vector2& attackPosition, const Vector2& targetPosition) const
+	{
+		const int deltaX = targetPosition.x - attackPosition.x;
+		const int deltaY = targetPosition.y - attackPosition.y;
+
+		const int stepX = (deltaX == 0) ? 0 : (deltaX > 0 ? 1 : -1);
+		const int stepY = (deltaY == 0) ? 0 : (deltaY > 0 ? 1 : -1);
+
+		// attackPosition과 targetPosition 사이의 중간 칸들만 검사
+		Vector2 current = attackPosition + Vector2(stepX, stepY);
+
+		while (current != targetPosition)
+		{
+			if (IsWallAtPosition(current))
+			{
+				return false;
+			}
+
+			current = current + Vector2(stepX, stepY);
+		}
+
+		return true;
+	}
+
 	std::vector<Vector2> LevelNavigation::FindApproachPositions(
 		const std::vector<std::vector<int>>& navGrid,
 		const Vector2& targetPosition,
-		const int atkDist 
+		const int atkRange
 	) const
 	{
 		// 8방향.
 		static const Vector2 directions[8] =
 		{
 			// 상하좌우.
-			Vector2(0, atkDist),
-			Vector2(0, -atkDist),
-			Vector2(atkDist, 0),
-			Vector2(-atkDist, 0),
+			Vector2(0, atkRange),
+			Vector2(0, -atkRange),
+			Vector2(atkRange, 0),
+			Vector2(-atkRange, 0),
 
 			// 대각선.
-			Vector2(atkDist, atkDist),
-			Vector2(atkDist, -atkDist),
-			Vector2(-atkDist, atkDist),
-			Vector2(-atkDist, -atkDist)
+			Vector2(atkRange, atkRange),
+			Vector2(atkRange, -atkRange),
+			Vector2(-atkRange, atkRange),
+			Vector2(-atkRange, -atkRange)
 		};
 
 		std::vector<Vector2> candidatePositions;
@@ -102,10 +157,17 @@ namespace Navigation
 		{
 			const Vector2 candidatePosition = targetPosition + direction;
 
-			if (IsTileWalkable(navGrid, candidatePosition))
+			if (!IsTileWalkable(navGrid, candidatePosition))
 			{
-				candidatePositions.emplace_back(candidatePosition);
+				continue;
 			}
+
+			if (!HasClearLineToTarget(candidatePosition, targetPosition))
+			{
+				continue;
+			}
+
+			candidatePositions.emplace_back(candidatePosition);
 		}
 
 		return candidatePositions;

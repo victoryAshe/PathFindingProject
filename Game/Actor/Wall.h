@@ -4,6 +4,8 @@
 
 using namespace Wanted;
 
+constexpr int wallSortingOrder = 20;
+
 class Wall : public Actor
 {
 	RTTI_DECLARATIONS(Wall, Actor)
