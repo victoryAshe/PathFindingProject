@@ -7,6 +7,7 @@
 // Actor
 #include "Actor/Player.h"
 #include "Actor/Enemy.h"
+#include "Actor/Wall.h"
 
 
 IngameLevel::IngameLevel()
@@ -41,7 +42,16 @@ void IngameLevel::Tick(float deltaTime)
 		AddNewActor(new Enemy(mousePosition));
 		return;
 	}
+
+	if (Input::Get().GetMouseButtonDown(1))
+	{
+		Vector2 mousePosition = Input::Get().MousePosition();
+		if (mousePosition == player->GetPosition()) return;
+		AddNewActor(new Wall(mousePosition));
+		return;
+	}
 }
+
 
 void IngameLevel::Draw()
 {

@@ -3,6 +3,7 @@
 #include "Interface/ICanActorMove.h"
 #include "Level/Level.h"
 #include "Core/Input.h"
+#include "Engine/GameEngine.h"
 
 
 Player::Player(const Vector2& position)
@@ -31,7 +32,7 @@ void Player::Tick(float deltaTime)
 	}
 
 	// 이동.
-	if (Input::Get().GetKeyDown(VK_RIGHT) && GetPosition().x < 20)
+	if (Input::Get().GetKeyDown(VK_RIGHT) && GetPosition().x < GameEngine::Get().GetWidth())
 	{
 		// 이동 가능 여부 판단.
 		Vector2 newPosition(GetPosition().x + 1, GetPosition().y);
@@ -51,7 +52,7 @@ void Player::Tick(float deltaTime)
 		}
 	}
 
-	if (Input::Get().GetKeyDown(VK_DOWN) && GetPosition().y < 15)
+	if (Input::Get().GetKeyDown(VK_DOWN) && GetPosition().y < GameEngine::Get().GetHeight())
 	{
 		// 이동 가능 여부 판단.
 		Vector2 newPosition(GetPosition().x, GetPosition().y + 1);
