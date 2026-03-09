@@ -37,7 +37,7 @@ namespace Wanted
 
 				// 글자 값 및 속성 설정.
 				CHAR_INFO& info = charInfoArray[index];
-				info.Char.AsciiChar = ' ';
+				info.Char.UnicodeChar = ' ';
 				info.Attributes = 0;
 
 				// sortingOrder 초기화.
@@ -162,7 +162,7 @@ namespace Wanted
 					if (frame->sortingOrderArray[destIndex] > command.sortingOrder)
 						continue;
 
-					frame->charInfoArray[destIndex].Char.AsciiChar = c;
+					frame->charInfoArray[destIndex].Char.UnicodeChar = c;
 					frame->charInfoArray[destIndex].Attributes = (WORD)command.color;
 					frame->sortingOrderArray[destIndex] = command.sortingOrder;
 				}
