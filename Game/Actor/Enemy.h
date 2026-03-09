@@ -32,7 +32,6 @@ public:
 	// Attack ½ÇÇà.
 	void Attack();
 
-
 	// ========== Update Member ========== 
 	void UpdateMovement(float deltaTime);
 	void ResetMovement();

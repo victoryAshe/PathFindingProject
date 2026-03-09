@@ -3,8 +3,21 @@
 #include "Actor/Enemy.h"
 #include "AI/EnemyMovementController.h"
 
+#include "Level/IngameLevel.h" 
+
 void EnemyStateMachine::Tick(Enemy& owner, float deltaTime)
 {
+	// player가 죽었으면 행동을 전부 멈추도록.
+	IngameLevel* level = owner.GetIngameLevel();
+	if (!level || level->IsPlayerDead())
+	{
+		if (currentState != State::Idle)
+		{
+			ChangeState(owner, State::Idle);
+		}
+		return;
+	}
+
 	stateTimer.Tick(deltaTime);
 
 	switch (currentState)

@@ -19,6 +19,9 @@ public:
 	// 피격 시 Event.
 	void OnDamaged(int damage);
 
+	// Getter: 생존 상태.
+	bool IsDead() const { return isDead; }
+
 protected:
 	virtual void SetOwner(Level* newOwner) override;
 
@@ -36,6 +39,8 @@ private:
 	// 발사 가능여부 확인 함수.
 	bool CanShoot() const;
 
+	// 사망 처리.
+	void HandleDeath();
 
 public:
 	int attackPower = 1;
@@ -46,6 +51,9 @@ private:
 
 	// 타이머 변수.
 	Timer timer;
+
 	// 연사 시간 간격.
-	float fireInterval = 0.3f;
+	float fireInterval = 0.25f;
+
+	bool isDead = false;
 };

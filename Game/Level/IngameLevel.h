@@ -3,6 +3,7 @@
 #include "Level/Level.h"
 
 #include "Actor/Player.h"
+#include "Util/Timer.h"
 
 // Navigation
 #include "Interface/ICanActorMove.h"
@@ -61,11 +62,14 @@ public:
 		int sortingOrder
 	)override;
 	
+	// Player 죽음 처리.
+	void OnPlayerDead();
+	bool IsPlayerDead() const { return isPlayerDead; }
+
 	// Getter.
 	const std::vector<Actor*>& GetActors() const { return actors; }
 	
 	Player* GetPlayerActor() const { return player; }
-
 
 private:
 
@@ -75,9 +79,12 @@ private:
 
 	// 충돌 판정 처리 함수.
 	void ProcessCollisionPlayerBulletAndEnemy();
-	void ProcessCollisionPlayerAndEnemy();
 
 	void ShowPlayerUI();
+
+	// Player 죽음 처리.
+	void UpdatePlayerDeathFlow(float deltaTime);
+	void ReturnToMenuAfterPlayerDeath();
 
 private:
 	Player* player = nullptr;
@@ -91,6 +98,12 @@ private:
 
 	// 플레이어가 죽은 위치 (Draw에서 처리하기 위해 Tick에서 저장).
 	Vector2 playerDeadPosition;
+
+	static constexpr float playerDeathWaitTime = 4.0f;
+
+	// Player가 죽은 뒤, 4초 동안 멈춤을 처리해줄 timer.
+	Timer playerDeathTimer = Timer(playerDeathWaitTime);
+
 
 	// PathFinding을 위한 class. 
 	Navigation::LevelNavigation levelNavigation;

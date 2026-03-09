@@ -1,7 +1,7 @@
 #include "Player.h"
 
 #include "Interface/ICanActorMove.h"
-#include "Level/Level.h"
+#include "Level/IngameLevel.h"
 #include "Core/Input.h"
 #include "Engine/GameEngine.h"
 #include "Actor/PlayerBullet.h"
@@ -18,7 +18,30 @@ void Player::OnDamaged(int damage)
 {
 	if (damage <= 0) return;
 
+	// 이미 죽은 상태면 추가 피격 무시.
+	if (isDead) return;
+
 	hp = max(hp - damage, 0);
+
+	if (hp == 0)
+	{
+		HandleDeath();
+	}
+}
+
+void Player::HandleDeath()
+{
+	// 이미 죽은 상태면: 추가 처리 X.
+	if (isDead) return;
+
+	isDead = true;
+	ChangeImage("X");
+
+	IngameLevel* ingameLevel = dynamic_cast<IngameLevel*>(GetOwner());
+	if (ingameLevel)
+	{
+		ingameLevel->OnPlayerDead();
+	}
 }
 
 void Player::SetOwner(Level* newOwner)
@@ -36,6 +59,9 @@ void Player::Tick(float deltaTime)
 {
 	super::Tick(deltaTime);
 	timer.Tick(deltaTime);
+
+	// 사망 후에는 입력/발사 차단.
+	if (isDead) return;
 
 	Move();
 	ProcessFire();

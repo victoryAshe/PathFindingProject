@@ -25,6 +25,12 @@ void IngameLevel::Tick(float deltaTime)
 {
 	super::Tick(deltaTime);
 
+	// Player 사망 시, 대기 흐름만 처리.
+	if (isPlayerDead)
+	{
+		UpdatePlayerDeathFlow(deltaTime);
+		return;
+	}
 	
 	// ESC키 처리.
 	if (Input::Get().GetKeyDown(VK_ESCAPE))
@@ -35,7 +41,6 @@ void IngameLevel::Tick(float deltaTime)
 	}
 
 	ProcessCollisionPlayerBulletAndEnemy();
-	ProcessCollisionPlayerAndEnemy();
 
 	// 마우스 왼쪽 input되면 Enemy spawn.
 	// TODO: 키 입력에 따라, 마우스 input 처리를 바꾸기.
@@ -61,6 +66,16 @@ void IngameLevel::Draw()
 	super::Draw();
 
 	ShowPlayerUI();
+
+	if (isPlayerDead)
+	{
+		Renderer::Get().Submit(
+			"! Game Over !",
+			Vector2(10, 3),
+			Color::Red,
+			200
+		);
+	}
 }
 
 std::vector<Vector2> IngameLevel::FindPath(
@@ -171,17 +186,11 @@ void IngameLevel::ProcessCollisionPlayerBulletAndEnemy()
 				enemy->OnDamaged(player->attackPower);
 				bullet->Destroy();
 
-				// 점수 추가.
 				// TODO: EXP 처리.
-				//score += 1;
 				continue;
 			}
 		}
 	}
-}
-
-void IngameLevel::ProcessCollisionPlayerAndEnemy()
-{
 }
 
 void IngameLevel::ShowPlayerUI()
@@ -202,6 +211,7 @@ void IngameLevel::ShowPlayerUI()
 		);
 	}
 }
+
 
 bool IngameLevel::CanMove(
 	const Wanted::Vector2& curPositon, 
@@ -236,6 +246,7 @@ bool IngameLevel::CanMove(
 	return true;
 }
 
+
 bool IngameLevel::CanAttackFromPosition(const Vector2& attackPosition, const Vector2& targetPosition, int attackRange) const
 {
 	return levelNavigation.CanAttackFromPosition(
@@ -258,4 +269,32 @@ void IngameLevel::DrawPath(std::vector<Vector2> const path)
 			1
 		);
 	}
+}
+
+
+void IngameLevel::OnPlayerDead()
+{
+	// 이미 죽은 상태면 처리 X.
+	if (isPlayerDead) return;
+
+	isPlayerDead = true;
+	playerDeadPosition = player ? player->GetPosition() : Vector2::Zero;
+
+	playerDeathTimer.Restart(playerDeathWaitTime);
+}
+
+void IngameLevel::UpdatePlayerDeathFlow(float deltaTime)
+{
+	playerDeathTimer.Tick(deltaTime);
+
+	if (playerDeathTimer.IsTimeOut())
+	{
+		ReturnToMenuAfterPlayerDeath();
+	}
+}
+
+void IngameLevel::ReturnToMenuAfterPlayerDeath()
+{
+	GameEngine::Get().CreateNewInGame();
+	GameEngine::Get().ChangeLevel(GameState::Menu);
 }

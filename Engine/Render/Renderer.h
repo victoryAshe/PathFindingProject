@@ -3,7 +3,9 @@
 #include "Math/Vector2.h"
 #include "Math/Color.h"
 #include "Assets/AsciiArt.h"
+
 #include <vector>
+#include <string>
 #include <memory>
 
 namespace Wanted
@@ -38,6 +40,7 @@ namespace Wanted
 
 			// 화면에 보여줄 문자열 값.
 			const char* text = nullptr;
+			const wchar_t* wtext = nullptr;
 
 			int width = 0;
 			int height = 0;
