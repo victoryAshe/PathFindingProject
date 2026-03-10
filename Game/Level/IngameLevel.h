@@ -14,6 +14,8 @@
 // TODO: UI Manager로 빼기.
 #include "UI/LabelUI.h"
 
+// EnemySpawner.
+#include "Spawner/EnemySpawner.h"
 
 using namespace Wanted;
 
@@ -93,6 +95,9 @@ public:
 	// Player가 호출할 HP UI 업데이트 함수.
 	void RefreshPlayerHpUI();
 
+	// Enemy Random Spawn
+	void SpawnEnemyAtRandomLocation();
+
 	// Getter.
 	const std::vector<Actor*>& GetActors() const { return actors; }
 	
@@ -101,9 +106,8 @@ public:
 private:
 
 	void MoveToMenu();
-	void SpawnEnemyAt(const Vector2& spawnPosition);
 	void SpawnWallAt(const Vector2& wallPosition);
-
+	
 	// 충돌 판정 처리 함수.
 	void ProcessCollisionPlayerBullet();
 
@@ -116,6 +120,26 @@ private:
 	// Player 죽음 처리.
 	void UpdatePlayerDeathFlow(float deltaTime);
 	void ReturnToMenuAfterPlayerDeath();
+
+	// Enemy Random Spawn 보조 함수들 추가
+	bool TryFindEnemySpawnLocation(
+		Vector2& outSpawnLocation,
+		float minSpawnDistanceFromPlayer,
+		int maxSpawnSearchAttempts
+	) const;
+
+	bool IsEnemySpawnLocationValid(
+		const Vector2& candidateLocation,
+		float minSpawnDistanceFromPlayer
+	) const;
+
+	bool IsFarEnoughFromPlayer(
+		const Vector2& candidateLocation,
+		float minSpawnDistanceFromPlayer
+	) const;
+
+	bool IsOccupiedByBlockingActor(const Vector2& candidateLocation) const;
+	Vector2 GenerateRandomWorldLocation() const;
 
 
 private:
@@ -148,6 +172,13 @@ private:
 
 	// Fire 게이지 칸 수.
 	static constexpr int fireCooldownGaugeCellCount = 6;
+
+	// Enemy 랜덤 스폰 기본값
+	static constexpr float enemySpawnMinDistanceFromPlayer = 8.0f;
+	static constexpr int enemySpawnSearchAttemptCount = 32;
+
+	// Enemy Spawn 주기 관리 객체
+	EnemySpawner enemySpawner;
 
 	// PathFinding을 위한 class. 
 	Navigation::LevelNavigation levelNavigation;

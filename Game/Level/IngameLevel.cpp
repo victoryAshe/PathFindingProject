@@ -14,7 +14,8 @@
 
 
 IngameLevel::IngameLevel()
-	: levelNavigation(this)
+	: levelNavigation(this),
+	enemySpawner(this)
 {
 	const IntRect& worldRect = GetWorldRect();
 
@@ -59,6 +60,11 @@ IngameLevel::IngameLevel()
 
 	// 초기 HP text 반영.
 	RefreshPlayerHpUI();
+
+
+	// Enemy Spawn 주기 시작
+	enemySpawner.SetSpawnInterval(3.0f);
+	enemySpawner.Start();
 }
 
 IngameLevel::~IngameLevel()
@@ -88,26 +94,13 @@ void IngameLevel::Tick(float deltaTime)
 		return;
 	}
 
+	//Enemy 자동 스폰 Tick
+	enemySpawner.Tick(deltaTime);
+
 	ProcessCollisionPlayerBullet();
 
-	// 마우스 왼쪽 input되면 Enemy spawn.
-	// TODO: 키 입력에 따라, 마우스 input 처리를 바꾸기.
+	// 마우스 왼쪽 input되면 Wall Spawn.
 	if (Input::Get().GetMouseButtonDown(0))
-	{
-		const Vector2 mouseScreenPosition = Input::Get().MousePosition();
-		Vector2 worldLocalPosition;
-
-		if (IsInsideUIRectScreen(mouseScreenPosition)) return;
-
-		if (TryConvertScreenToWorldPosition(mouseScreenPosition, worldLocalPosition))
-		{
-			SpawnEnemyAt(worldLocalPosition);
-		}
-		return;
-	}
-
-	// 마우스 오른쪽 input되면 Wall Spawn.
-	if (Input::Get().GetMouseButtonDown(1))
 	{
 		const Vector2 mouseScreenPosition = Input::Get().MousePosition();
 		Vector2 worldLocalPosition;
@@ -196,14 +189,6 @@ void IngameLevel::MoveToMenu()
 	GameEngine::Get().ChangeLevel(GameState::Menu);
 }
 
-void IngameLevel::SpawnEnemyAt(const Vector2& position)
-{
-	// 방어적으로 한 번 더 검사.
-	if (!IsInsideWorldBounds(position)) return;
-
-	AddNewActor(new Enemy(position));
-}
-
 void IngameLevel::SpawnWallAt(const Vector2& position)
 {
 	// 방어적으로 한 번 더 검사.
@@ -211,6 +196,33 @@ void IngameLevel::SpawnWallAt(const Vector2& position)
 
 	if (position == player->GetPosition()) return;
 	AddNewActor(new Wall(position));
+}
+
+void IngameLevel::SpawnEnemyAtRandomLocation()
+{
+	Vector2 spawnLocation;
+
+	if (!TryFindEnemySpawnLocation(
+		spawnLocation,
+		enemySpawnMinDistanceFromPlayer,
+		enemySpawnSearchAttemptCount))
+	{
+		return;
+	}
+
+	// 방어적으로 월드 범위 재검사
+	if (!IsInsideWorldBounds(spawnLocation))
+	{
+		return;
+	}
+
+	// 점유된 위치면 생성하지 않음
+	if (IsOccupiedByBlockingActor(spawnLocation))
+	{
+		return;
+	}
+
+	AddNewActor(new Enemy(spawnLocation));
 }
 
 void IngameLevel::ProcessCollisionPlayerBullet()
@@ -482,6 +494,103 @@ void IngameLevel::ReturnToMenuAfterPlayerDeath()
 {
 	GameEngine::Get().hasActivePlayableSession = false;
 	GameEngine::Get().ChangeLevel(GameState::Menu);
+}
+
+bool IngameLevel::TryFindEnemySpawnLocation(Vector2& outSpawnLocation, float minSpawnDistanceFromPlayer, int maxSpawnSearchAttempts) const
+{
+	for (int attemptIndex = 0; attemptIndex < maxSpawnSearchAttempts; ++attemptIndex)
+	{
+		const Vector2 candidateLocation = GenerateRandomWorldLocation();
+
+		if (!IsEnemySpawnLocationValid(candidateLocation, minSpawnDistanceFromPlayer))
+		{
+			continue;
+		}
+
+		outSpawnLocation = candidateLocation;
+		return true;
+	}
+
+	return false;
+}
+
+bool IngameLevel::IsEnemySpawnLocationValid(const Vector2& candidateLocation, float minSpawnDistanceFromPlayer) const
+{
+	if (!IsInsideWorldBounds(candidateLocation))
+	{
+		return false;
+	}
+
+	if (!IsFarEnoughFromPlayer(candidateLocation, minSpawnDistanceFromPlayer))
+	{
+		return false;
+	}
+
+	if (IsOccupiedByBlockingActor(candidateLocation))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool IngameLevel::IsFarEnoughFromPlayer(const Vector2& candidateLocation, float minSpawnDistanceFromPlayer) const
+{
+	if (!player)
+	{
+		return true;
+	}
+
+	const Vector2 playerLocation = player->GetPosition();
+
+	const float deltaX = static_cast<float>(candidateLocation.x - playerLocation.x);
+	const float deltaY = static_cast<float>(candidateLocation.y - playerLocation.y);
+
+	const float distanceSquared = (deltaX * deltaX) + (deltaY * deltaY);
+	const float minDistanceSquared = minSpawnDistanceFromPlayer * minSpawnDistanceFromPlayer;
+
+	return distanceSquared >= minDistanceSquared;
+}
+
+bool IngameLevel::IsOccupiedByBlockingActor(const Vector2& candidateLocation) const
+{
+	if (player && player->GetPosition() == candidateLocation)
+	{
+		return true;
+	}
+
+	for (Actor* const actor : actors)
+	{
+		if (!actor || actor->DestroyRequested())
+		{
+			continue;
+		}
+
+		if (actor->GetPosition() != candidateLocation)
+		{
+			continue;
+		}
+
+		if (actor->IsTypeOf<Enemy>() || actor->IsTypeOf<Wall>())
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+Vector2 IngameLevel::GenerateRandomWorldLocation() const
+{
+	const IntRect& worldRect = GetWorldRect();
+
+	const int randomX = Util::Random(worldRect.GetLeft(), worldRect.GetRight() - 1);
+	const int randomY = Util::Random(worldRect.GetTop(), worldRect.GetBottom() - 1);
+
+	return Vector2(
+		static_cast<float>(randomX),
+		static_cast<float>(randomY)
+	);
 }
 
 Vector2 IngameLevel::GetWorldScreenOrigin() const

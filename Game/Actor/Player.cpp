@@ -9,7 +9,7 @@ ICanActorMove* Player::canPlayerMoveInterface = nullptr;
 
 Player::Player(const Vector2& position)
 	:super("P", position, Color::Blue)
-	, timer(0.3f) // 처음 시작 시 바로 발사 가능하도록 채운 상태로 시작.
+	, timer(0.35f) // 처음 시작 시 바로 발사 가능하도록 채운 상태로 시작.
 {
 	sortingOrder = playerSortingOrder;
 

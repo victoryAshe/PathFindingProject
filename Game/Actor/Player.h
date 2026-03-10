@@ -64,7 +64,7 @@ private:
 	Timer timer;
 
 	// 연사 시간 간격.
-	float fireInterval = 0.3f;
+	float fireInterval = 0.35f;
 
 	bool isDead = false;
 };
