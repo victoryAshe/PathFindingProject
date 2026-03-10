@@ -31,7 +31,7 @@ public:
 	static GameEngine& Get();
 
 public:
-	bool IsGameInitialized = false;
+	bool hasActivePlayableSession = false;
 
 private:
 	// Game에서 관리하는 level.

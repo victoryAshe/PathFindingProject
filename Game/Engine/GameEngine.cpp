@@ -43,19 +43,9 @@ GameEngine::~GameEngine()
 
 void GameEngine::ChangeLevel(GameState state)
 {
-	// 화면 지우기.
-	//system("cls");
-	// 이 호출을 하면 마우스 입력이 깨진다.
-
 	// 변경할 index => state.
 	int index = static_cast<int>(state);
 	this->state = state;
-	
-	// 만약 level을 새로 시작한다면.
-	if (!IsGameInitialized && state == GameState::GamePlay)
-	{
-		IsGameInitialized = true;
-	}
 
 	// 메인 레벨 변경.
 	mainLevel = levels[index];
@@ -67,8 +57,10 @@ void GameEngine::CreateNewInGame()
 	Level* newGame = new IngameLevel();
 
 	// 기존 inGameLevel은 삭제한 뒤에 GameEngine의 pointer를 바꿔줌.
-	delete levels[1];
+	delete levels[1];        
 	levels[1] = newGame;
+
+	hasActivePlayableSession = true;
 }
 
 GameEngine& GameEngine::Get()

@@ -37,6 +37,9 @@ struct MenuItem
 
 	// Menu 선택됐을 때 실행될 logic.
 	OnSelected onSelected = nullptr;
+
+	// 화면에 표시할 지 여부.
+	bool isVisible = true;
 };
 
 class MenuLevel: public Level
@@ -50,13 +53,14 @@ public:
 	virtual void Tick(float deltaTime) override;
 	virtual void Draw() override;
 
-	// 새로운 menuItem 만들어 넣기(ResumeGame)
-	// 딱 한 번만 menuitem에서 호출할 용.
-	void CreateNewMenu(int i, MenuItem* item);
+private:
+	void RebuildVisibleMenuItems();
+	void SyncResumeMenuVisibility();
+	void HandleMenuInput();
 
 private:
-	// 현재 활성화된 메뉴 아이템 인덱스.
-	int currentIndex = 0;
+	// 전체 items 기준이 아니라 현재 보이는 항목 기준 선택 인덱스. 
+	int currentVisibleIndex = 0;
 
 	// 선택된 아이템의 색상.
 	Color selectedColor = Color::Green;
@@ -66,5 +70,14 @@ private:
 
 	// 메뉴 아이템 배열. 
 	std::vector<MenuItem*> items;
+
+	// 보이는 MenuItem index 배열.
+	std::vector<int> visibleItemIndices;
+
+
+	// 고정 메뉴 인덱스.
+	static constexpr int NewMenuItemIndex = 0;
+	static constexpr int ResumeMenuItemIndex = 1;
+	static constexpr int QuitMenuItemIndex = 2;
 };
 

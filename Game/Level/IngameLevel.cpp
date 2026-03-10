@@ -295,6 +295,6 @@ void IngameLevel::UpdatePlayerDeathFlow(float deltaTime)
 
 void IngameLevel::ReturnToMenuAfterPlayerDeath()
 {
-	GameEngine::Get().CreateNewInGame();
+	GameEngine::Get().hasActivePlayableSession = false;
 	GameEngine::Get().ChangeLevel(GameState::Menu);
 }
