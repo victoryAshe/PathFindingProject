@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Common/Common.h"
+#include "Common/RTTI.h"
 #include "UI/UIElement.h"
 
 namespace Wanted
@@ -14,16 +16,11 @@ namespace Wanted
 			const Vector2& localPosition = Vector2::Zero,
 			Color color = Color::White,
 			int sortingOrder = 10000
-		)
-			: UIElement(localPosition, color, sortingOrder, false)
-		{
-			SetText(text);
-		}
+		);
+
+		virtual ~LabelUI() override;
 
 	public:
-		void SetLabelText(const char* newText)
-		{
-			SetText(newText);
-		}
+		void SetLabelText(const char* newText);
 	};
 }

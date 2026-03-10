@@ -47,6 +47,8 @@ namespace Wanted
 
 	void UIElement::OnDrawUI()
 	{
+
+
 		if (!textBuffer || width <= 0 || height <= 0)
 		{
 			return;

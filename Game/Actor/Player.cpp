@@ -22,6 +22,13 @@ void Player::OnDamaged(int damage)
 
 	hp = max(hp - damage, 0);
 
+	// hp를 ui에 표시.
+	IngameLevel* ingameLevel = dynamic_cast<IngameLevel*>(GetOwner());
+	if (ingameLevel)
+	{
+		ingameLevel->RefreshPlayerHpUI();
+	}
+
 	if (hp == 0)
 	{
 		HandleDeath();

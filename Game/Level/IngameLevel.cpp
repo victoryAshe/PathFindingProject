@@ -9,6 +9,9 @@
 #include "Actor/Wall.h"
 #include "Actor/PlayerBullet.h"
 
+// UI 문자열 처리를 위해 include.
+#include <cstring>
+
 
 IngameLevel::IngameLevel()
 	: levelNavigation(this)
@@ -22,6 +25,30 @@ IngameLevel::IngameLevel()
 
 	player = new Player(initialPlayerPosition);
 	AddNewActor(player);
+
+	// =========================
+	// Player HP UI 생성
+	// : localPosition은 UIRect 내부 기준 좌표
+	// =========================
+	playerHpTitleLabel = new LabelUI(
+		"PlayerHP:",
+		Vector2(3, 3),
+		Color::White,
+		10000
+	);
+
+	playerHpValueLabel = new LabelUI(
+		"",
+		Vector2(12, 3), // 타이틀 오른쪽에 배치
+		Color::Red,
+		10000
+	);
+
+	AddNewUIElement(playerHpTitleLabel);
+	AddNewUIElement(playerHpValueLabel);
+
+	// 초기 HP text 반영.
+	RefreshPlayerHpUI();
 }
 
 IngameLevel::~IngameLevel()
@@ -84,9 +111,7 @@ void IngameLevel::Tick(float deltaTime)
 void IngameLevel::Draw()
 {
 	super::Draw();
-
-	DrawPlayerUI();
-
+	
 	if (isPlayerDead)
 	{
 		Renderer::Get().Submit(
@@ -245,26 +270,6 @@ void IngameLevel::ProcessCollisionPlayerBullet()
 
 }
 
-void IngameLevel::DrawPlayerUI()
-{
-	static const char* playerHPstring = "PlayerHP: ";
-	static const int len = static_cast<int>(strlen(playerHPstring)) +1;
-	static char heart[1];
-	heart[0] = '\x03';
-	Renderer::Get().Submit(playerHPstring, Vector2(2, 2), Color::White, 100);
-	
-	for (int i = 0; i < player->hp; ++i)
-	{
-		Renderer::Get().Submit(
-			heart,
-			Vector2(len + i, 2),
-			Color::Red,
-			100
-		);
-	}
-}
-
-
 bool IngameLevel::CanMove(
 	const Wanted::Vector2& currentPositon,
 	const Wanted::Vector2& nextPosition, 
@@ -339,6 +344,29 @@ void IngameLevel::OnPlayerDead()
 	playerDeadPosition = player ? player->GetPosition() : Vector2::Zero;
 
 	playerDeathTimer.Restart(playerDeathWaitTime);
+}
+
+void IngameLevel::RefreshPlayerHpUI()
+{
+	if (!playerHpValueLabel || !player)
+	{
+		return;
+	}
+
+	// 하트 문자 뒤에 이어붙이기.
+	const char heartGlyph = '\x03';
+
+	const int hp = player->hp;
+	const int maxBufferLength = static_cast<int>(sizeof(playerHpValueBuffer)) - 1;
+	const int heartCount = (hp < maxBufferLength) ? hp : maxBufferLength;
+
+	for (int i = 0; i < heartCount; ++i)
+	{
+		playerHpValueBuffer[i] = heartGlyph;
+	}
+	playerHpValueBuffer[heartCount] = '\0';
+
+	playerHpValueLabel->SetLabelText(playerHpValueBuffer);
 }
 
 void IngameLevel::UpdatePlayerDeathFlow(float deltaTime)

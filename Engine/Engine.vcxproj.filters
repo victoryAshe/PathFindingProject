@@ -48,6 +48,9 @@
     <ClCompile Include="UI\MenuListUI.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="UI\LabelUI.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Engine.h">
@@ -104,13 +107,13 @@
     <ClInclude Include="UI\UIElement.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="UI\LabelUI.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="UI\PanelUI.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="UI\MenuListUI.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="UI\LabelUI.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

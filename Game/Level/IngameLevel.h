@@ -10,6 +10,10 @@
 #include "Navigation/NavigationController.h"
 #include "Navigation/LevelNavigation.h"
 
+// UI
+// TODO: UI Manager로 빼기.
+#include "UI/LabelUI.h"
+
 
 using namespace Wanted;
 
@@ -86,6 +90,8 @@ public:
 	void OnPlayerDead();
 	bool IsPlayerDead() const { return isPlayerDead; }
 
+	void RefreshPlayerHpUI();
+
 	// Getter.
 	const std::vector<Actor*>& GetActors() const { return actors; }
 	
@@ -100,8 +106,6 @@ private:
 	// 충돌 판정 처리 함수.
 	void ProcessCollisionPlayerBullet();
 
-	void DrawPlayerUI();
-
 	// Player 죽음 처리.
 	void UpdatePlayerDeathFlow(float deltaTime);
 	void ReturnToMenuAfterPlayerDeath();
@@ -110,9 +114,12 @@ private:
 private:
 	Player* player = nullptr;
 
-	// player 체력 출력용.
-	// TODO: 별도의 UI로 분리할 수 있으면 할 것.
-	char playerUIstring[128] = {};
+	// Player HP UI를 LabelUI 2개로 분리(색을 다르게 처리하기 위해).
+	LabelUI* playerHpTitleLabel = nullptr;
+	LabelUI* playerHpValueLabel = nullptr;
+	
+	// Player HP 문자열 버퍼.
+	char playerHpValueBuffer[32] = {};
 
 	// 플레이어가 죽었는지 확인.
 	bool isPlayerDead = false;
