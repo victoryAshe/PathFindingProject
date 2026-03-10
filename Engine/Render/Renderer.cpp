@@ -46,7 +46,7 @@ namespace Wanted
 		}
 	}
 
-	// ==================== Frame ============================ //
+	// ==================== Frame ============================
 
 	// 정적 변수 초기화.
 	Renderer* Renderer::instance = nullptr;
@@ -69,14 +69,21 @@ namespace Wanted
 
 		screenBuffers[1] = new ScreenBuffer(screenSize);
 		screenBuffers[1]->Clear();
+
+		// UI <=> Woarld Rect 경계 그려줄 문자.
+		borderChar[0] = '#';
 	}
 
 	Renderer::~Renderer()
 	{
 		SafeDelete(frame);
+
 		for (ScreenBuffer*& buffer : screenBuffers)
 		{
-			if(buffer) SafeDeleteArray(buffer);
+			if (buffer)
+			{
+				SafeDelete(buffer);
+			}
 		}
 	}
 
@@ -112,55 +119,68 @@ namespace Wanted
 		// Clear Screen.
 		Clear();
 
-		// 전제 조건: Level의 모든 Actor가 Renderer에 Submit을 완료해야 함!
-		// RenderQueue를 순회하면서 Frame 채우기.
+		const IntRect screenRect = GetScreenRect();
+
 		for (const RenderCommand& command : renderQueue)
 		{
-			// 화면에 그릴 text가 없으면 건너뜀.
-			if (!command.text)
+			if (!command.text || command.width <= 0 || command.height <= 0) // [변경]
 			{
 				continue;
 			}
 
-			Vector2 cPos = command.position;
-			// 세로 클리핑: 세로 기준 화면 벗어났는지 확인.
-			const int startY = cPos.y;
-			const int endY = cPos.y + command.height - 1;
-			if (endY < 0 || startY >= screenSize.y) continue;
+			IntRect renderRect = command.renderRect; 
+			if (!renderRect.IsValid())              
+			{
+				renderRect = screenRect;
+			}
 
-			const int visibleStartY = (startY < 0) ? 0 : startY;
-			const int visibleEndY = (endY >= screenSize.y) ? (screenSize.y - 1) : endY;
+			const int drawStartX = renderRect.x + command.localPosition.x;           
+			const int drawStartY = renderRect.y + command.localPosition.y;    
+			const int drawEndX = drawStartX + command.width - 1;              
+			const int drawEndY = drawStartY + command.height - 1;     
+
+			const int clipMinX = (renderRect.GetLeft() > screenRect.GetLeft())     
+				? renderRect.GetLeft() : screenRect.GetLeft();
+			const int clipMinY = (renderRect.GetTop() > screenRect.GetTop())
+				? renderRect.GetTop() : screenRect.GetTop();
+			const int clipMaxX = (renderRect.GetRight() < screenRect.GetRight())
+				? renderRect.GetRight() : screenRect.GetRight();
+			const int clipMaxY = (renderRect.GetBottom() < screenRect.GetBottom())
+				? renderRect.GetBottom() : screenRect.GetBottom();
+
+			if (drawEndY < clipMinY || drawStartY > clipMaxY)  continue;
+
+			if (drawEndX < clipMinX || drawStartX > clipMaxX) continue;
+			
+
+			const int visibleStartY = (drawStartY < clipMinY) ? clipMinY : drawStartY;
+			const int visibleEndY = (drawEndY > clipMaxY) ? clipMaxY : drawEndY;      
+			const int visibleStartX = (drawStartX < clipMinX) ? clipMinX : drawStartX;
+			const int visibleEndX = (drawEndX > clipMaxX) ? clipMaxX : drawEndX;     
 
 			for (int y = visibleStartY; y <= visibleEndY; ++y)
 			{
-				// 가져올 char 좌표.
-				const int sourceY = y - startY;
-
-				// 가로 클리핑: 가로 기준 화면 벗어났는지 확인.
-				const int startX = cPos.x;
-				const int endX = cPos.x + command.width - 1;
-				if (endX < 0 || startX >= screenSize.x) continue;
-
-				const int visibleStartX = (startX < 0) ? 0 : startX;
-				const int visibleEndX = (endX >= screenSize.x) ? (screenSize.x - 1) : endX;
+				const int sourceY = y - drawStartY;
 
 				for (int x = visibleStartX; x <= visibleEndX; ++x)
 				{
-					// 가져올 char 좌표.
-					const int sourceX = x - startX;
+					const int sourceX = x - drawStartX; 
 
 					const int sourceIndex = (sourceY * command.width) + sourceX;
 					const char c = command.text[sourceIndex];
+					
 
-					// 공백은 투명 처리해서 기존 pixel 유지.
-					if (command.spaceeTransparent && c == ' ') continue;
+					if (command.spaceTransparent && c == ' ') 
+					{
+						continue;
+					}
 
 					const int destIndex = (y * screenSize.x) + x;
 
-					// sortingOrder 기반 합성
-					// 현재 text의 sortingOrder가 더 크면(:앞 layer면) 덮어쓰기 x.
 					if (frame->sortingOrderArray[destIndex] > command.sortingOrder)
+					{
 						continue;
+					}
 
 					frame->charInfoArray[destIndex].Char.UnicodeChar = c;
 					frame->charInfoArray[destIndex].Attributes = (WORD)command.color;
@@ -168,7 +188,6 @@ namespace Wanted
 				}
 			}
 		}
-
 		// Draw.
 		GetCurrentBuffer()->Draw(frame->charInfoArray);
 
@@ -191,19 +210,60 @@ namespace Wanted
 		command.text = text;
 		command.width = (text) ? static_cast<int>(strlen(text)) : 0;
 		command.height = 1;
-		command.position = position;
+		command.localPosition = position;
 		command.color = color;
 		command.sortingOrder = sortingOrder;
-
-		command.spaceeTransparent = false;
+		command.renderRect = GetScreenRect();
+		command.spaceTransparent = false;
 
 		renderQueue.emplace_back(command);
 	}
 
 	void Renderer::Submit(
+		const char* text, 
+		const Vector2& localPosition, 
+		const IntRect& renderRect,
+		Color color, 
+		int sortingOrder)
+	{
+		RenderCommand command = {};
+		command.text = text;
+		command.width = (text) ? static_cast<int>(strlen(text)) : 0;
+		command.height = 1;
+		command.localPosition = localPosition;
+		command.renderRect = renderRect;
+		command.color = color;
+		command.sortingOrder = sortingOrder;
+		command.spaceTransparent = false;
+
+		renderQueue.emplace_back(command);
+	}
+
+	//void Renderer::Submit(
+	//	const wchar_t* text, 
+	//	const Vector2& localPosition, 
+	//	const IntRect& renderRect, 
+	//	Color color, 
+	//	int sortingOrder)
+	//{
+	//	RenderCommand command = {};
+	//	command.wtext = text;
+	//	command.width = (text) ? static_cast<int>(wcslen(text)) : 0;
+	//	command.height = 1;
+	//	command.localPosition = localPosition;
+	//	command.renderRect = renderRect;
+	//	command.color = color;
+	//	command.sortingOrder = sortingOrder;
+	//	command.spaceTransparent = false;
+	//
+	//	renderQueue.emplace_back(command);
+	//}
+
+	void Renderer::Submit(
 		const char* image, 
 		int width, int height, 
-		const Vector2& position, 
+		const Vector2& localPosition, 
+		const IntRect& renderRect, 
 		Color color, 
 		int sortingOrder, 
 		bool spaceTransparent)
@@ -212,10 +272,31 @@ namespace Wanted
 		command.text = image;
 		command.width = width;
 		command.height = height;
-		command.position = position;
+		command.localPosition = localPosition;
+		command.renderRect = renderRect;
 		command.color = color;
 		command.sortingOrder = sortingOrder;
-		command.spaceeTransparent = spaceTransparent;
+		command.spaceTransparent = spaceTransparent;
+
+		renderQueue.emplace_back(command);
+	}
+
+	void Renderer::Submit(
+		const char* image, 
+		int width, int height, 
+		const Vector2& position, 
+		Color color, int sortingOrder, 
+		bool spaceTransparent)
+	{
+		RenderCommand command = {};
+		command.text = image;
+		command.width = width;
+		command.height = height;
+		command.localPosition = position;
+		command.renderRect = GetScreenRect();
+		command.color = color;
+		command.sortingOrder = sortingOrder;
+		command.spaceTransparent = spaceTransparent;
 
 		renderQueue.emplace_back(command);
 	}
@@ -234,20 +315,69 @@ namespace Wanted
 		command.text = art->pixels.data();
 		command.width = art->width;
 		command.height = art->height;
-
-		command.position = position;
+		command.renderRect = GetScreenRect();
+		command.localPosition = position;
 		command.color = color;
 		command.sortingOrder = sortingOrder;
-		command.spaceeTransparent = spaceTransparent;
+		command.spaceTransparent = spaceTransparent;
 
 		renderQueue.emplace_back(command);
+	}
+
+	void Renderer::Submit(
+		std::shared_ptr<const AsciiArt> art,
+		const Vector2& localPosition, 
+		const IntRect& renderRect, 
+		Color color, 
+		int sortingOrder, 
+		bool spaceTransparent)
+	{
+		if (!art || !art->isValid())
+		{
+			return;
+		}
+
+		RenderCommand command = {};
+		command.artOwner = art;
+		command.text = art->pixels.data();
+		command.width = art->width;
+		command.height = art->height;
+		command.localPosition = localPosition;
+		command.renderRect = renderRect;
+		command.color = color;
+		command.sortingOrder = sortingOrder;
+		command.spaceTransparent = spaceTransparent;
+
+		renderQueue.emplace_back(command);
+	}
+
+	void Renderer::SubmitRectOutline(
+		const IntRect& rect, 
+		Color color, 
+		int sortingOrder)
+	{
+		if (!rect.IsValid())
+		{
+			return;
+		}
+
+		for (int x = 0; x < rect.width; ++x)
+		{
+			Submit(borderChar, Vector2(rect.x + x, rect.y), color, sortingOrder);
+			Submit(borderChar, Vector2(rect.x + x, rect.y + rect.height - 1), color, sortingOrder);
+		}
+
+		for (int y = 0; y < rect.height; ++y)
+		{
+			Submit(borderChar, Vector2(rect.x, rect.y + y), color, sortingOrder);
+			Submit(borderChar, Vector2(rect.x + rect.width - 1, rect.y + y), color, sortingOrder);
+		}
 	}
 
 	void Renderer::PresentImmediately()
 	{
 		Draw();
-		GetCurrentBuffer()->Draw(frame->charInfoArray);
-		Present();
+		GetCurrentBuffer()->Clear();
 	}
 
 	void Renderer::Present()
@@ -264,5 +394,9 @@ namespace Wanted
 	ScreenBuffer* Renderer::GetCurrentBuffer()
 	{
 		return screenBuffers[currentBufferIndex];
+	}
+	IntRect Renderer::GetScreenRect() const
+	{
+		return IntRect(0, 0, screenSize.x, screenSize.y);
 	}
 }

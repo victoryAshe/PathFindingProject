@@ -13,7 +13,14 @@
 IngameLevel::IngameLevel()
 	: levelNavigation(this)
 {
-	player = new Player(Vector2(10, 10));
+	const IntRect& worldRect = GetWorldRect();
+
+	const Vector2 initialPlayerPosition(
+		worldRect.width / 2,
+		worldRect.height / 2
+	);
+
+	player = new Player(initialPlayerPosition);
 	AddNewActor(player);
 }
 
@@ -46,16 +53,29 @@ void IngameLevel::Tick(float deltaTime)
 	// TODO: 키 입력에 따라, 마우스 input 처리를 바꾸기.
 	if (Input::Get().GetMouseButtonDown(0))
 	{
-		Vector2 mousePosition = Input::Get().MousePosition();
-		CreateEnemy(mousePosition);
+		const Vector2 mouseScreenPosition = Input::Get().MousePosition();
+		Vector2 worldLocalPosition;
+
+		if (IsInsideUIRectScreen(mouseScreenPosition)) return;
+
+		if (TryConvertScreenToWorldPosition(mouseScreenPosition, worldLocalPosition))
+		{
+			SpawnEnemyAt(worldLocalPosition);
+		}
 		return;
 	}
 
 	// 마우스 오른쪽 input되면 Wall Spawn.
 	if (Input::Get().GetMouseButtonDown(1))
 	{
-		Vector2 mousePosition = Input::Get().MousePosition();
-		CreateWall(mousePosition);
+		const Vector2 mouseScreenPosition = Input::Get().MousePosition();
+		Vector2 worldLocalPosition;
+		if (IsInsideUIRectScreen(mouseScreenPosition)) return;
+
+		if (TryConvertScreenToWorldPosition(mouseScreenPosition, worldLocalPosition))
+		{
+			SpawnWallAt(worldLocalPosition);
+		}
 		return;
 	} 
 }
@@ -65,7 +85,7 @@ void IngameLevel::Draw()
 {
 	super::Draw();
 
-	ShowPlayerUI();
+	DrawPlayerUI();
 
 	if (isPlayerDead)
 	{
@@ -137,13 +157,19 @@ void IngameLevel::MoveToMenu()
 	GameEngine::Get().ChangeLevel(GameState::Menu);
 }
 
-void IngameLevel::CreateEnemy(const Vector2 position)
+void IngameLevel::SpawnEnemyAt(const Vector2& position)
 {
+	// 방어적으로 한 번 더 검사.
+	if (!IsInsideWorldBounds(position)) return;
+
 	AddNewActor(new Enemy(position));
 }
 
-void IngameLevel::CreateWall(const Vector2 position)
+void IngameLevel::SpawnWallAt(const Vector2& position)
 {
+	// 방어적으로 한 번 더 검사.
+	if (!IsInsideWorldBounds(position)) return;
+
 	if (position == player->GetPosition()) return;
 	AddNewActor(new Wall(position));
 }
@@ -193,19 +219,19 @@ void IngameLevel::ProcessCollisionPlayerBulletAndEnemy()
 	}
 }
 
-void IngameLevel::ShowPlayerUI()
+void IngameLevel::DrawPlayerUI()
 {
 	static const char* playerHPstring = "PlayerHP: ";
 	static const int len = static_cast<int>(strlen(playerHPstring)) +1;
 	static char heart[1];
 	heart[0] = '\x03';
-	Renderer::Get().Submit(playerHPstring, Vector2(1, 1), Color::White, 100);
+	Renderer::Get().Submit(playerHPstring, Vector2(2, 2), Color::White, 100);
 	
 	for (int i = 0; i < player->hp; ++i)
 	{
 		Renderer::Get().Submit(
 			heart,
-			Vector2(len + i, 1),
+			Vector2(len + i, 2),
 			Color::Red,
 			100
 		);
@@ -214,15 +240,12 @@ void IngameLevel::ShowPlayerUI()
 
 
 bool IngameLevel::CanMove(
-	const Wanted::Vector2& curPositon, 
+	const Wanted::Vector2& currentPositon,
 	const Wanted::Vector2& nextPosition, 
 	int sortingOrder)
 {
-	const Vector2 screenSize = GameEngine::Get().GetScreenSize();
-
-	// Exception Handling.
-	if (nextPosition.x < 0 || nextPosition.x >= screenSize.x
-		|| nextPosition.y < 0 || nextPosition.y >= screenSize.y)
+	// 이동도 playable world local 기준으로 제한.
+	if (!IsInsideWorldBounds(nextPosition))
 	{
 		return false;
 	}
@@ -230,6 +253,12 @@ bool IngameLevel::CanMove(
 	for (Actor* const actor : actors)
 	{
 		if (!actor || actor->DestroyRequested())
+		{
+			continue;
+		}
+
+		// 자기 자신의 현재 위치는 제외.
+		if (actor->GetPosition() == currentPositon)
 		{
 			continue;
 		}
@@ -256,15 +285,18 @@ bool IngameLevel::CanAttackFromPosition(const Vector2& attackPosition, const Vec
 	);
 }
 
-void IngameLevel::DrawPath(std::vector<Vector2> const path)
+void IngameLevel::DrawPath(const std::vector<Vector2>& path)
 {
 	if (path.empty()) return;
 
-	for (const Vector2 pos : path)
+	const IntRect& worldRect = GetWorldRect();
+
+	for (const Vector2& localPathPosition : path)
 	{
 		Renderer::Get().Submit(
 			"*",
-			pos,
+			localPathPosition,
+			worldRect,
 			Color::Green,
 			1
 		);
@@ -297,4 +329,70 @@ void IngameLevel::ReturnToMenuAfterPlayerDeath()
 {
 	GameEngine::Get().hasActivePlayableSession = false;
 	GameEngine::Get().ChangeLevel(GameState::Menu);
+}
+
+Vector2 IngameLevel::GetWorldScreenOrigin() const
+{
+	const IntRect& worldRect = GetWorldRect();
+	return Vector2(worldRect.x, worldRect.y);
+}
+
+Vector2 IngameLevel::GetPlayableWorldSize() const
+{
+	//  전체 screen 크기에서
+	//  좌우 border, 상단 UI Rect + border, 하단 border를 제외한 크기.
+	const IntRect& worldRect = GetWorldRect();
+	return Vector2(worldRect.width, worldRect.height);
+}
+
+bool IngameLevel::IsInsideUIRectScreen(const Vector2& screenPosition) const
+{
+	const IntRect& uiRect = GetUIRect();
+	return uiRect.Contains(screenPosition.x, screenPosition.y);
+}
+
+bool IngameLevel::IsInsideWorldScreenRect(const Vector2& screenPosition) const
+{
+	// screen 좌표 기준으로 실제 플레이 월드 영역인지 검사.
+	const IntRect& worldRect = GetWorldRect();
+	return worldRect.Contains(screenPosition.x, screenPosition.y);
+}
+
+bool IngameLevel::IsInsideWorldBounds(const Vector2& worldLocalPosition) const
+{
+	const IntRect& worldRect = GetWorldRect();
+
+	//  WorldRect 외곽선 1칸을 제외한 내부만 실제 playable 영역으로 취급.
+	return
+		worldLocalPosition.x >= 1 &&
+		worldLocalPosition.x < worldRect.width - 1 &&
+		worldLocalPosition.y >= 1 &&
+		worldLocalPosition.y < worldRect.height - 1;
+}
+
+
+bool IngameLevel::TryConvertScreenToWorldPosition(const Vector2& screenPosition, Vector2& outWorldLocalPosition) const
+{
+	// UI Rect 클릭은 월드 좌표로 변환하지 않음.
+	if (IsInsideUIRectScreen(screenPosition))
+	{
+		return false;
+	}
+
+	// 실제 WorldRect 바깥도 차단.
+	if (!IsInsideWorldScreenRect(screenPosition))
+	{
+		return false;
+	}
+
+	const IntRect& worldRect = GetWorldRect();
+
+	// world local 좌표로 변환.
+	outWorldLocalPosition = Vector2(
+		screenPosition.x - worldRect.x,
+		screenPosition.y - worldRect.y
+	);
+
+	return IsInsideWorldBounds(outWorldLocalPosition);
+
 }

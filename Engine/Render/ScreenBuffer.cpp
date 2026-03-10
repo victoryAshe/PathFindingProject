@@ -64,9 +64,10 @@ namespace Wanted
 	ScreenBuffer::~ScreenBuffer()
 	{
 		// Free Buffer.
-		if (&buffer)
+		if (buffer && buffer!=INVALID_HANDLE_VALUE)
 		{
-			CloseHandle(&buffer);
+			CloseHandle(buffer);
+			buffer = nullptr;
 		}
 	}
 

@@ -53,14 +53,34 @@ public:
 		int attackRange
 	) const;
 
-	void DrawPath(std::vector<Vector2> const path);
+	void DrawPath(const std::vector<Vector2>& path);
 
 	// ICanActorMove Interface를 받아서 override.
 	virtual bool CanMove(
-		const Wanted::Vector2& curPositon,
+		const Wanted::Vector2& currentPositon,
 		const Wanted::Vector2& nextPosition,
 		int sortingOrder
 	)override;
+
+	// 실제 플레이 가능한 월드 영역의 시작 screen 좌표.
+	Vector2 GetWorldScreenOrigin() const;
+
+	// 실제 플레이 가능한 월드 영역 크기.
+	Vector2 GetPlayableWorldSize() const;
+
+	// screen 좌표가 UI Rect에 속하는지 검사.
+	bool IsInsideUIRectScreen(const Vector2& screenPosition) const;
+
+	bool IsInsideWorldScreenRect(const Vector2& screenPosition) const;
+
+	//  world local 좌표가 플레이 가능한 영역인지 검사
+	bool IsInsideWorldBounds(const Vector2& worldLocalPosition) const;
+
+	// screen position => world local position 변환.
+	bool TryConvertScreenToWorldPosition(
+		const Vector2& screenPosition,
+		Vector2& outWorldLocalPosition
+	) const;
 	
 	// Player 죽음 처리.
 	void OnPlayerDead();
@@ -74,17 +94,18 @@ public:
 private:
 
 	void MoveToMenu();
-	void CreateEnemy(const Vector2 position);
-	void CreateWall(const Vector2 position);
+	void SpawnEnemyAt(const Vector2& spawnPosition);
+	void SpawnWallAt(const Vector2& wallPosition);
 
 	// 충돌 판정 처리 함수.
 	void ProcessCollisionPlayerBulletAndEnemy();
 
-	void ShowPlayerUI();
+	void DrawPlayerUI();
 
 	// Player 죽음 처리.
 	void UpdatePlayerDeathFlow(float deltaTime);
 	void ReturnToMenuAfterPlayerDeath();
+
 
 private:
 	Player* player = nullptr;

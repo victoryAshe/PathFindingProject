@@ -3,6 +3,7 @@
 #include "Assets/AsciiLoader.h"
 #include "Render/Renderer.h"
 #include "Engine/Engine.h"
+#include "Level/Level.h"
 
 #include <iostream>
 #include <Windows.h>
@@ -78,6 +79,8 @@ namespace Wanted
 
 	void Actor:: Draw()
 	{
+		const IntRect renderRect = owner ? owner->GetWorldRect() : IntRect();
+
 		// shared_ptr을 가진 AsciiArtActor
 		// Renderer에 shared_ptr을 넘겨서 RenderQueue가 자원 수명 보장.
 		if (sharedArt && sharedArt->isValid())
@@ -85,19 +88,21 @@ namespace Wanted
 			Renderer::Get().Submit(
 				sharedArt,
 				position,
+				renderRect,
 				color,
 				sortingOrder,
 				spaceTransparent
 			);
 			return;
 		}
-		
+
 		// 기존 1줄: Renderer에 Data 제출.
 		Renderer::Get().Submit(
 			image, 
 			width,
 			height,
-			position, 
+			position,
+			renderRect,
 			color, 
 			sortingOrder,
 			spaceTransparent

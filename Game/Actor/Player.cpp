@@ -3,7 +3,6 @@
 #include "Interface/ICanActorMove.h"
 #include "Level/IngameLevel.h"
 #include "Core/Input.h"
-#include "Engine/GameEngine.h"
 #include "Actor/PlayerBullet.h"
 
 ICanActorMove* Player::canPlayerMoveInterface = nullptr;
@@ -74,12 +73,13 @@ void Player::Draw()
 
 void Player::Move()
 {
-
 	// 오너십 확인 (null 확인).
 	if (!GetOwner() || !canPlayerMoveInterface) return;
 
+	// 직접 screen 경계를 검사하지 않고,
+	// IngameLevel::CanMove()가 WorldRect 판정을 전담한다.
 	// 이동.
-	if (Input::Get().GetKeyDown(VK_RIGHT) && GetPosition().x < GameEngine::Get().GetWidth())
+	if (Input::Get().GetKeyDown(VK_RIGHT))
 	{
 		// 이동 가능 여부 판단.
 		Vector2 newPosition(GetPosition().x + 1, GetPosition().y);
@@ -89,7 +89,7 @@ void Player::Move()
 		}
 	}
 
-	if (Input::Get().GetKeyDown(VK_LEFT) && GetPosition().x > 0)
+	if (Input::Get().GetKeyDown(VK_LEFT))
 	{
 		// 이동 가능 여부 판단.
 		Vector2 newPosition(GetPosition().x - 1, GetPosition().y);
@@ -99,7 +99,7 @@ void Player::Move()
 		}
 	}
 
-	if (Input::Get().GetKeyDown(VK_DOWN) && GetPosition().y < GameEngine::Get().GetHeight())
+	if (Input::Get().GetKeyDown(VK_DOWN))
 	{
 		// 이동 가능 여부 판단.
 		Vector2 newPosition(GetPosition().x, GetPosition().y + 1);
@@ -109,7 +109,7 @@ void Player::Move()
 		}
 	}
 
-	if (Input::Get().GetKeyDown(VK_UP) && GetPosition().y > 0)
+	if (Input::Get().GetKeyDown(VK_UP))
 	{
 		// 이동 가능 여부 판단.
 		Vector2 newPosition(GetPosition().x, GetPosition().y - 1);

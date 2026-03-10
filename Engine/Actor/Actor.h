@@ -4,6 +4,7 @@
 #include "Math/Vector2.h"
 #include "Math/Color.h"
 #include "Assets/AsciiArt.h"
+#include "UI/UIElement.h"
 
 #include <memory>
 #include <string>
@@ -70,6 +71,10 @@ namespace Wanted
 		inline Level* GetOwner() const { return owner; }
 
 		// Getter.
+		inline int GetWidth() const { return width; }
+		inline int GetHeight() const { return height; }
+		inline int GetSortingOrder() const { return sortingOrder; }
+
 		inline bool HasBeganPlay() const 
 		{ 
 			return hasBeganPlay; 
@@ -84,13 +89,6 @@ namespace Wanted
 		{ 
 			return destroyRequested; 
 		}
-
-		inline int GetSortingOrder() const { return sortingOrder; }
-
-		inline int GetWidth() const { return width; }
-		inline int GetHeight() const { return height; }
-
-		inline bool IsSpaceTransparent() const { return spaceTransparent; }
 
 	protected:
 		// 이미 BeginPlay event를 받았는지 여부.

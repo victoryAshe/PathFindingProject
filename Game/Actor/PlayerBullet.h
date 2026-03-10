@@ -27,7 +27,7 @@ private:
 
 	// 이동 속도.
 	// 초당 몇칸 이동하는지를 나타냄.
-	float moveSpeed = 10.0f;
+	float moveSpeed = 15.0f;
 
 	// 위치 갱신을 할 때 소수점 누적처리를 위한 변수.
 	float preciseX = 0.0f;

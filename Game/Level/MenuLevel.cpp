@@ -76,7 +76,10 @@ MenuLevel::Tick(float deltaTime)
 
 void MenuLevel::Draw()
 {
-	Renderer::Get().Submit("Path Finding Project", Vector2::Zero);
+	const static char* title = "Path Finding Project";
+	const static int titleLen = static_cast<int>(strlen(title));
+	const static Vector2 titlePos = Vector2( (GameEngine::Get().GetWidth() - titleLen) / 2, GameEngine::Get().GetHeight()/2-5);
+	Renderer::Get().Submit(title, titlePos);
 
 	// 메뉴 아이템 출력.
 	for (int visibleIndex = 0; visibleIndex < static_cast<int>(visibleItemIndices.size()); ++visibleIndex)
@@ -93,9 +96,10 @@ void MenuLevel::Draw()
 		Color textColor =
 			(visibleIndex == currentVisibleIndex) ? selectedColor : unselectedColor;
 
+		int menuTextLen = static_cast<int>(strlen(menuItem->text));
 		Renderer::Get().Submit(
 			menuItem->text,
-			Vector2(0, 2 + visibleIndex),
+			Vector2( (GameEngine::Get().GetWidth()- menuTextLen) / 2, titlePos.y + 2 + visibleIndex),
 			textColor
 		);
 	}

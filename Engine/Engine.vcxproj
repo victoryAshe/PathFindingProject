@@ -96,7 +96,8 @@ xcopy $(OutDir)Engine.lib $(SolutionDir)Library\Engine\$(Platform)\$(Configurati
     <ClCompile Include="Math\Vector2.cpp" />
     <ClCompile Include="Render\Renderer.cpp" />
     <ClCompile Include="Render\ScreenBuffer.cpp" />
-    <ClCompile Include="UI\UI.cpp" />
+    <ClCompile Include="UI\MenuListUI.cpp" />
+    <ClCompile Include="UI\UIElement.cpp" />
     <ClCompile Include="Util\CsvReader.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -109,9 +110,13 @@ xcopy $(OutDir)Engine.lib $(SolutionDir)Library\Engine\$(Platform)\$(Configurati
     <ClInclude Include="Engine\Engine.h" />
     <ClInclude Include="Level\Level.h" />
     <ClInclude Include="Math\Color.h" />
+    <ClInclude Include="Math\IntRect.h" />
     <ClInclude Include="Math\Vector2.h" />
     <ClInclude Include="Render\ScreenBuffer.h" />
-    <ClInclude Include="UI\UI.h" />
+    <ClInclude Include="UI\LabelUI.h" />
+    <ClInclude Include="UI\MenuListUI.h" />
+    <ClInclude Include="UI\PanelUI.h" />
+    <ClInclude Include="UI\UIElement.h" />
     <ClInclude Include="Util\CsvReader.h" />
     <ClInclude Include="Util\FileIO.h" />
     <ClInclude Include="Util\PathUtil.h" />

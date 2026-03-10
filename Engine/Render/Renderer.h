@@ -3,6 +3,7 @@
 #include "Math/Vector2.h"
 #include "Math/Color.h"
 #include "Assets/AsciiArt.h"
+#include "Math/IntRect.h"
 
 #include <vector>
 #include <string>
@@ -45,8 +46,11 @@ namespace Wanted
 			int width = 0;
 			int height = 0;
 
-			// 좌표.
-			Vector2 position;
+			// renderRect 내부 local 좌표.
+			Vector2 localPosition = Vector2::Zero;
+
+			// 실제 출력/clipping 영역.
+			IntRect renderRect;
 
 			// Color.
 			Color color = Color::White;
@@ -54,7 +58,7 @@ namespace Wanted
 			// Render priority.
 			int sortingOrder = 0;
 
-			bool spaceeTransparent = true;
+			bool spaceTransparent = true;
 		};
 
 	public:
@@ -72,6 +76,36 @@ namespace Wanted
 			int sortingOrder = 0
 		);
 
+		// 단일 line text + 영역 지정
+		void Submit(
+			const char* text,
+			const Vector2& localPosition,
+			const IntRect& renderRect,
+			Color color = Color::White,
+			int sortingOrder = 0
+		);
+
+		// 단일 line whcarText + 영역 지정
+		//void Submit(
+		//	const wchar_t* text,
+		//	const Vector2& localPosition,
+		//	const IntRect& renderRect,
+		//	Color color = Color::White,
+		//	int sortingOrder = 0
+		//);
+
+		// 이미지 + 영역 지정
+		void Submit(
+			const char* image,
+			int width,
+			int height,
+			const Vector2& localPosition,
+			const IntRect& renderRect,
+			Color color = Color::White,
+			int sortingOrder = 0,
+			bool spaceTransparent = true
+		);
+
 		// AsciiArt용 Submit
 		void Submit(
 			const char* image,
@@ -83,6 +117,7 @@ namespace Wanted
 			bool spaceTransparent = true
 		);
 
+
 		// AsciiArt의 shared_ptr 제출용 submit.
 		void Submit(
 			std::shared_ptr<const AsciiArt> art,
@@ -91,6 +126,24 @@ namespace Wanted
 			int sortingOrder = 0,
 			bool spaceTransparent = true
 		);
+
+		// AsciiArt + 영역 지정
+		void Submit(
+			std::shared_ptr<const AsciiArt> art,
+			const Vector2& localPosition,
+			const IntRect& renderRect,
+			Color color = Color::White,
+			int sortingOrder = 0,
+			bool spaceTransparent = true
+		);
+
+		// Layout용.
+		void SubmitRectOutline(
+			const IntRect& rect,
+			Color color = Color::White,
+			int sortingOrder = 999999
+		);
+
 
 		// 즉시 화면에 표시할 때 사용.
 		void PresentImmediately();
@@ -110,7 +163,11 @@ namespace Wanted
 		// Getter: 현재 사용할 Buffer를 return.
 		ScreenBuffer* GetCurrentBuffer();
 
+		IntRect GetScreenRect() const;
+
 	private:
+		char borderChar[2];
+
 		// ScreenSize.
 		Vector2 screenSize;
 

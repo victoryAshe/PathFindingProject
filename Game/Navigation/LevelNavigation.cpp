@@ -20,12 +20,17 @@ namespace Navigation
 		// Exception Handling.
 		assert(level != nullptr);
 
-		const Vector2 screenSize = GameEngine::Get().GetScreenSize();
+		// 전체 screenSize가 아니라 실제 플레이 월드 크기 사용.
+		const Vector2 playableWorldSize = level->GetPlayableWorldSize();
 
 		std::vector<std::vector<int>> navGrid(
-			screenSize.y,
-			std::vector<int>(screenSize.x, 0)
+			playableWorldSize.y,
+			std::vector<int>(playableWorldSize.x, 0)
 		);
+
+		// --------------------------------------------------
+		//				Actor 기반 장애물 처리
+		// --------------------------------------------------
 
 		const std::vector<Actor*>& actors = level->GetActors();
 
@@ -38,8 +43,8 @@ namespace Navigation
 
 			const Vector2 actorPosition = actor->GetPosition();
 
-			if (actorPosition.x < 0 || actorPosition.x >= screenSize.x ||
-				actorPosition.y < 0 || actorPosition.y >= screenSize.y)
+			// UI Rect를 제외한 world local 범위만 nav grid에 반영.
+			if (!level->IsInsideWorldBounds(actorPosition))
 			{
 				continue;
 			}
@@ -118,6 +123,12 @@ namespace Navigation
 
 		while (current != targetPosition)
 		{
+			// world local 범위를 벗어나면 line check 실패 처리.
+			if (!level->IsInsideWorldBounds(current))
+			{
+				return false;
+			}
+
 			if (IsWallAtPosition(current))
 			{
 				return false;

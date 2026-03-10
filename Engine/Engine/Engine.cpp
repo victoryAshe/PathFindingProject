@@ -110,6 +110,7 @@ namespace Wanted
 				if (mainLevel)
 				{
 					mainLevel->ProcessAddAndDestroyActors();
+					mainLevel->ProcessPendingUIElements();
 				}
 
 				// Level 전환 처리.

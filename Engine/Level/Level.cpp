@@ -1,15 +1,34 @@
 #include "Level.h"
 #include "Actor/Actor.h"
+#include "UI/UIElement.h"
+#include "Engine/Engine.h"
+#include "Render/Renderer.h"
 
 namespace Wanted {
 	Level::Level()
 	{
+		const int screenWidth = Engine::Get().GetWidth();
+		const int screenHeight = Engine::Get().GetHeight();
+		const int uiPanelWidth = 24;
 
+		// 테두리 부분 포함 X
+		worldRect = IntRect(
+			1, 1, 
+			screenWidth - uiPanelWidth - 2, 
+			screenHeight - 2
+		);
+
+		uiRect = IntRect(
+			screenWidth - uiPanelWidth +1, 
+			1, 
+			uiPanelWidth - 2, 
+			screenHeight - 2
+		);
 	}
 
 	Level::~Level()
 	{
-		// memory 정리.
+		// actor memory 정리.
 		for (Actor*& actor : actors)
 		{
 			if (actor)
@@ -19,8 +38,20 @@ namespace Wanted {
 			}
 		}
 
-		// 배열 초기화.
+		// actor 배열 초기화.
 		actors.clear();
+
+		// ui memory 정리.
+		for (UIElement*& uiElement : uiElements)
+		{
+			if (uiElement)
+			{
+				delete uiElement;
+				uiElement = nullptr;
+			}
+		}
+		// ui 배열 초기화.
+		uiElements.clear();
 	}
 
 	void Level::BeginPlay() 
@@ -36,13 +67,34 @@ namespace Wanted {
 
 			actor->BeginPlay();
 		}
+
+		for (UIElement*& uiElement : uiElements)
+		{
+			if (!uiElement)
+			{
+				continue;
+			}
+
+			uiElement->BeginPlay();
+		}
 	}
+
 	void Level::Tick(float deltaTime)
 	{
 		// Actor에 event 흘리기.
 		for (Actor*& actor : actors)
 		{
 			actor->Tick(deltaTime);
+		}
+
+		for (UIElement*& uiElement : uiElements)
+		{
+			if (!uiElement)
+			{
+				continue;
+			}
+
+			uiElement->Tick(deltaTime);
 		}
 	}
 
@@ -57,6 +109,21 @@ namespace Wanted {
 
 			actor->Draw();
 		}
+
+
+		for (UIElement*& uiElement : uiElements)
+		{
+			if (!uiElement || !uiElement->IsVisible())
+			{
+				continue;
+			}
+
+			uiElement->Draw();
+		}
+
+		// [추가] 영역 확인용
+		Renderer::Get().SubmitRectOutline(worldRect, Color::White, 999998);
+		Renderer::Get().SubmitRectOutline(uiRect, Color::White, 999999);
 	}
 
 	void Level::AddNewActor(Actor* newActor)
@@ -101,4 +168,29 @@ namespace Wanted {
 		addRequestedActors.clear();
 	}
 
+	void Level::AddNewUIElement(UIElement* newUIElement)
+	{
+		if (!newUIElement)
+		{
+			return;
+		}
+
+		addRequestedUIElements.emplace_back(newUIElement);
+		newUIElement->SetOwner(this);
+	}
+
+	void Level::ProcessPendingUIElements()
+	{
+		if (addRequestedUIElements.empty())
+		{
+			return;
+		}
+
+		for (UIElement* const uiElement : addRequestedUIElements)
+		{
+			uiElements.emplace_back(uiElement);
+		}
+
+		addRequestedUIElements.clear();
+	}
 }
