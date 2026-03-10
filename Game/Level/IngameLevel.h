@@ -117,6 +117,8 @@ private:
 	// 게이지 문자열 생성 함수.
 	void BuildFireCooldownGaugeText(char* outBuffer, int bufferSize) const;
 
+	void UpdateMoneyText();
+
 	// Player 죽음 처리.
 	void UpdatePlayerDeathFlow(float deltaTime);
 	void ReturnToMenuAfterPlayerDeath();
@@ -149,8 +151,8 @@ private:
 	LabelUI* playerHpTitleLabel = nullptr;
 	LabelUI* playerHpValueLabel = nullptr;
 	
-	// Player HP 문자열 버퍼.
-	char playerHpValueBuffer[32] = {};
+	// Player HP 문자열.
+	char playerHpValueText[32] = {};
 
 
 	// Player Fire cool down 표시용 UI.
@@ -158,6 +160,10 @@ private:
 
 	// Player Fire cool down 출력 버퍼.
 	char fireCooldownGaugeText[64] = {};
+
+	LabelUI* moneyLabel = nullptr;
+	char moneyText[64] = {};
+
 
 	// 플레이어가 죽었는지 확인.
 	bool isPlayerDead = false;

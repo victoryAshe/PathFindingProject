@@ -36,6 +36,10 @@ void Enemy::OnDamaged(int damage)
 
 		// 이펙트 생성 (재생을 위해).
 		GetOwner()->AddNewActor(new EnemyDestroyEffect(position));
+
+		// Player 돈 추가
+		owningIngameLevel->GetPlayerActor()->ChangeBalance(10);
+
 		return;
 	}	
 }

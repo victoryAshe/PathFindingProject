@@ -33,6 +33,8 @@ public:
 	// Fire Cooldown 진행 비율.
 	float GetFireCooldownProgressRatio() const;
 
+	void ChangeBalance(int value);
+
 protected:
 	virtual void SetOwner(Level* newOwner) override;
 
@@ -56,6 +58,7 @@ private:
 public:
 	int attackPower = 1;
 	int hp = 3;
+	int money = 100;
 
 private:
 	static ICanActorMove* canPlayerMoveInterface;

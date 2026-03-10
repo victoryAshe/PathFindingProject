@@ -134,7 +134,7 @@ void Player::Move()
 void Player::ProcessFire()
 {
 	// 발사 가능 여부 확인.
-	if (!CanShoot())
+	if (!CanShoot() || money <= 0)
 	{
 		return;
 	}
@@ -166,6 +166,8 @@ void Player::ProcessFire()
 void Player::CreateBullet(const Vector2 moveDirection)
 {
 	timer.Reset();
+
+	ChangeBalance(-1);
 
 	// 위치 설정.
 	Vector2 bulletPosition(
@@ -199,4 +201,9 @@ float Player::GetRemainingFireCooldown() const
 float Player::GetFireCooldownProgressRatio() const
 {
 	return timer.GetProgressRatio();
+}
+
+void Player::ChangeBalance(int value)
+{
+	money += value;	
 }

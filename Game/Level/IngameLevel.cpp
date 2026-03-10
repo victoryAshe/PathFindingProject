@@ -53,10 +53,18 @@ IngameLevel::IngameLevel()
 		10000
 	);
 
+	// Player Money LabelUI 생성.
+	moneyLabel = new LabelUI(
+		"Money: ",
+		Vector2(3, 7),
+		Color::Green,
+		10000
+	);
+
 	AddNewUIElement(playerHpTitleLabel);
 	AddNewUIElement(playerHpValueLabel);
 	AddNewUIElement(fireCooldownLabel);
-
+	AddNewUIElement(moneyLabel);
 
 	// 초기 HP text 반영.
 	RefreshPlayerHpUI();
@@ -77,7 +85,7 @@ void IngameLevel::Tick(float deltaTime)
 
 	// UI 문자열을 매 프레임 최신 상태로 갱신.
 	UpdateFireCooldownUI();
-
+	UpdateMoneyText();
 
 	// Player 사망 시, 대기 흐름만 처리.
 	if (isPlayerDead)
@@ -191,10 +199,14 @@ void IngameLevel::MoveToMenu()
 
 void IngameLevel::SpawnWallAt(const Vector2& position)
 {
+	if (player->money <= 0) return;
+
 	// 방어적으로 한 번 더 검사.
 	if (!IsInsideWorldBounds(position)) return;
 
 	if (position == player->GetPosition()) return;
+
+	player->ChangeBalance(-10);
 	AddNewActor(new Wall(position));
 }
 
@@ -319,7 +331,6 @@ void IngameLevel::UpdateFireCooldownUI()
 
 void IngameLevel::BuildFireCooldownGaugeText(char* outBuffer, int bufferSize) const
 {
-	// [추가]
 	if (!outBuffer || bufferSize <= 0)
 	{
 		return;
@@ -379,6 +390,18 @@ void IngameLevel::BuildFireCooldownGaugeText(char* outBuffer, int bufferSize) co
 			gaugeBuffer
 		);
 	}
+}
+
+void IngameLevel::UpdateMoneyText()
+{
+	snprintf(
+		moneyText,
+		sizeof(moneyText),
+		"Money: %d",
+		player->money
+	);
+
+	moneyLabel->SetLabelText(moneyText);
 }
 
 bool IngameLevel::CanMove(
@@ -468,16 +491,16 @@ void IngameLevel::RefreshPlayerHpUI()
 	const char heartGlyph = '\x03';
 
 	const int hp = player->hp;
-	const int maxBufferLength = static_cast<int>(sizeof(playerHpValueBuffer)) - 1;
+	const int maxBufferLength = static_cast<int>(sizeof(playerHpValueText)) - 1;
 	const int heartCount = (hp < maxBufferLength) ? hp : maxBufferLength;
 
 	for (int i = 0; i < heartCount; ++i)
 	{
-		playerHpValueBuffer[i] = heartGlyph;
+		playerHpValueText[i] = heartGlyph;
 	}
-	playerHpValueBuffer[heartCount] = '\0';
+	playerHpValueText[heartCount] = '\0';
 
-	playerHpValueLabel->SetLabelText(playerHpValueBuffer);
+	playerHpValueLabel->SetLabelText(playerHpValueText);
 }
 
 void IngameLevel::UpdatePlayerDeathFlow(float deltaTime)
