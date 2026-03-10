@@ -90,6 +90,7 @@ public:
 	void OnPlayerDead();
 	bool IsPlayerDead() const { return isPlayerDead; }
 
+	// Player가 호출할 HP UI 업데이트 함수.
 	void RefreshPlayerHpUI();
 
 	// Getter.
@@ -106,6 +107,12 @@ private:
 	// 충돌 판정 처리 함수.
 	void ProcessCollisionPlayerBullet();
 
+	// Fire CoolDown UI 문자열 갱신.
+	void UpdateFireCooldownUI();
+
+	// 게이지 문자열 생성 함수.
+	void BuildFireCooldownGaugeText(char* outBuffer, int bufferSize) const;
+
 	// Player 죽음 처리.
 	void UpdatePlayerDeathFlow(float deltaTime);
 	void ReturnToMenuAfterPlayerDeath();
@@ -121,6 +128,13 @@ private:
 	// Player HP 문자열 버퍼.
 	char playerHpValueBuffer[32] = {};
 
+
+	// Player Fire cool down 표시용 UI.
+	LabelUI* fireCooldownLabel = nullptr;
+
+	// Player Fire cool down 출력 버퍼.
+	char fireCooldownGaugeText[64] = {};
+
 	// 플레이어가 죽었는지 확인.
 	bool isPlayerDead = false;
 
@@ -132,6 +146,8 @@ private:
 	// Player가 죽은 뒤, 4초 동안 멈춤을 처리해줄 timer.
 	Timer playerDeathTimer = Timer(playerDeathWaitTime);
 
+	// Fire 게이지 칸 수.
+	static constexpr int fireCooldownGaugeCellCount = 6;
 
 	// PathFinding을 위한 class. 
 	Navigation::LevelNavigation levelNavigation;

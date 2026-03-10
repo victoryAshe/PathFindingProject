@@ -5,7 +5,7 @@
 #include "Util/Util.h"
 
 Enemy::Enemy(const Vector2& newPosition)
-	: super("E", newPosition, Color::Blue)
+	: super("E", newPosition, Color::Red)
 {
 	sortingOrder = EnemySortingOrder;
 

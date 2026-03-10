@@ -44,8 +44,18 @@ IngameLevel::IngameLevel()
 		10000
 	);
 
+	// Player Fire cool down LabelUI 생성.
+	fireCooldownLabel = new LabelUI(
+		"Fire: [######]",
+		Vector2(3, 5),
+		Color::White,
+		10000
+	);
+
 	AddNewUIElement(playerHpTitleLabel);
 	AddNewUIElement(playerHpValueLabel);
+	AddNewUIElement(fireCooldownLabel);
+
 
 	// 초기 HP text 반영.
 	RefreshPlayerHpUI();
@@ -58,6 +68,10 @@ IngameLevel::~IngameLevel()
 void IngameLevel::Tick(float deltaTime)
 {
 	super::Tick(deltaTime);
+
+	// UI 문자열을 매 프레임 최신 상태로 갱신.
+	UpdateFireCooldownUI();
+
 
 	// Player 사망 시, 대기 흐름만 처리.
 	if (isPlayerDead)
@@ -268,6 +282,91 @@ void IngameLevel::ProcessCollisionPlayerBullet()
 	}
 
 
+}
+
+void IngameLevel::UpdateFireCooldownUI()
+{
+	if (!fireCooldownLabel || !player)
+	{
+		return;
+	}
+
+	if (player->IsDead())
+	{
+		fireCooldownLabel->SetLabelText("Fire: [------]");
+		return;
+	}
+
+	BuildFireCooldownGaugeText(
+		fireCooldownGaugeText,
+		sizeof(fireCooldownGaugeText)
+	);
+
+	fireCooldownLabel->SetLabelText(fireCooldownGaugeText);
+}
+
+void IngameLevel::BuildFireCooldownGaugeText(char* outBuffer, int bufferSize) const
+{
+	// [추가]
+	if (!outBuffer || bufferSize <= 0)
+	{
+		return;
+	}
+
+	if (!player)
+	{
+		snprintf(outBuffer, bufferSize, "Fire: [------]");
+		return;
+	}
+
+	float progressRatio = player->GetFireCooldownProgressRatio();
+	bool isReady = (progressRatio == 1.0f);
+
+	int filledCellCount = static_cast<int>(progressRatio * fireCooldownGaugeCellCount);
+
+	if (filledCellCount < 0)
+	{
+		filledCellCount = 0;
+	}
+	else if (filledCellCount > fireCooldownGaugeCellCount)
+	{
+		filledCellCount = fireCooldownGaugeCellCount;
+	}
+
+	char gaugeBuffer[fireCooldownGaugeCellCount + 1] = {};
+
+	for (int i = 0; i < fireCooldownGaugeCellCount; ++i)
+	{
+		if (i < filledCellCount)
+		{
+			gaugeBuffer[i] = '#';
+		}
+		else
+		{
+			gaugeBuffer[i] = '-';
+		}
+	}
+
+	gaugeBuffer[fireCooldownGaugeCellCount] = '\0';
+
+	if (isReady)
+	{
+		snprintf(
+			outBuffer,
+			bufferSize,
+			"Fire:[%s] READY",
+			gaugeBuffer
+		);
+	}
+	else
+	{
+		snprintf(
+			outBuffer,
+			bufferSize,
+			"Fire:[%s]",
+			gaugeBuffer
+		);
+	}
 }
 
 bool IngameLevel::CanMove(

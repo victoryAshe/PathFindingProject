@@ -22,6 +22,17 @@ public:
 	// Getter: 생존 상태.
 	bool IsDead() const { return isDead; }
 
+	// Getters for Fire timer.
+	
+	// 발사 가능 여부.
+	bool IsFireReady() const;
+
+	// 다음 발사까지 남은 시간.
+	float GetRemainingFireCooldown() const;
+
+	// Fire Cooldown 진행 비율.
+	float GetFireCooldownProgressRatio() const;
+
 protected:
 	virtual void SetOwner(Level* newOwner) override;
 
@@ -53,7 +64,7 @@ private:
 	Timer timer;
 
 	// 연사 시간 간격.
-	float fireInterval = 0.15f;
+	float fireInterval = 0.3f;
 
 	bool isDead = false;
 };

@@ -8,9 +8,12 @@
 ICanActorMove* Player::canPlayerMoveInterface = nullptr;
 
 Player::Player(const Vector2& position)
-	:super("P", position, Color::Red)
+	:super("P", position, Color::Blue)
+	, timer(0.3f) // 처음 시작 시 바로 발사 가능하도록 채운 상태로 시작.
 {
 	sortingOrder = playerSortingOrder;
+
+	timer.Tick(fireInterval);
 }
 
 void Player::OnDamaged(int damage)
@@ -34,6 +37,7 @@ void Player::OnDamaged(int damage)
 		HandleDeath();
 	}
 }
+
 
 void Player::HandleDeath()
 {
@@ -179,4 +183,20 @@ bool Player::CanShoot() const
 	// 경과 시간 확인.
 	// 발사 간격보다 더 많이 흘렀는지.
 	return timer.IsTimeOut();
+}
+
+
+bool Player::IsFireReady() const
+{
+	return CanShoot();
+}
+
+float Player::GetRemainingFireCooldown() const
+{
+	return timer.GetRemainingTime();
+}
+
+float Player::GetFireCooldownProgressRatio() const
+{
+	return timer.GetProgressRatio();
 }

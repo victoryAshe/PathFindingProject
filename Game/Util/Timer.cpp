@@ -1,4 +1,5 @@
 #include "Timer.h"
+#include <cmath>
 
 Timer::Timer(float targetTime)
 	: targetTime(targetTime)
@@ -30,4 +31,35 @@ void Timer::Restart(float newTargetTime)
 {
 	SetTargetTime(newTargetTime);
 	Reset();
+}
+
+float Timer::GetRemainingTime() const
+{
+	// 음수로 내려가지 않게 처리.
+	const float remainingTime = targetTime - elapsedTime;
+	return remainingTime > 0.0f ? remainingTime : 0.0f;
+}
+
+float Timer::GetProgressRatio() const
+{
+	// Divide by Zero 방지.
+	if (targetTime <= 0.0f)
+	{
+		return 1.0f;
+	}
+
+	const float ratio = elapsedTime / targetTime;
+
+	
+	if (ratio <= 0.0f)
+	{
+		return 0.0f;
+	}
+
+	if (ratio >= 1.0f)
+	{
+		return 1.0f;
+	}
+
+	return ratio;
 }
