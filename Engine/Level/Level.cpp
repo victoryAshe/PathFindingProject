@@ -13,16 +13,16 @@ namespace Wanted {
 
 		// 테두리 부분 포함 X
 		worldRect = IntRect(
-			1, 1, 
-			screenWidth - uiPanelWidth - 2, 
-			screenHeight - 2
+			0, 0, 
+			screenWidth - uiPanelWidth, 
+			screenHeight
 		);
 
 		uiRect = IntRect(
-			screenWidth - uiPanelWidth +1, 
-			1, 
-			uiPanelWidth - 2, 
-			screenHeight - 2
+			screenWidth - uiPanelWidth, 
+			0, 
+			uiPanelWidth, 
+			screenHeight
 		);
 	}
 
@@ -121,7 +121,7 @@ namespace Wanted {
 			uiElement->Draw();
 		}
 
-		// [추가] 영역 확인용
+		// WorldRect, UIRect 영역 확인용
 		Renderer::Get().SubmitRectOutline(worldRect, Color::White, 999998);
 		Renderer::Get().SubmitRectOutline(uiRect, Color::White, 999999);
 	}

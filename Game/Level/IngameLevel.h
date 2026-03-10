@@ -98,7 +98,7 @@ private:
 	void SpawnWallAt(const Vector2& wallPosition);
 
 	// 충돌 판정 처리 함수.
-	void ProcessCollisionPlayerBulletAndEnemy();
+	void ProcessCollisionPlayerBullet();
 
 	void DrawPlayerUI();
 

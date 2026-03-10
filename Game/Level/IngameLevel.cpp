@@ -47,7 +47,7 @@ void IngameLevel::Tick(float deltaTime)
 		return;
 	}
 
-	ProcessCollisionPlayerBulletAndEnemy();
+	ProcessCollisionPlayerBullet();
 
 	// 마우스 왼쪽 input되면 Enemy spawn.
 	// TODO: 키 입력에 따라, 마우스 input 처리를 바꾸기.
@@ -174,11 +174,12 @@ void IngameLevel::SpawnWallAt(const Vector2& position)
 	AddNewActor(new Wall(position));
 }
 
-void IngameLevel::ProcessCollisionPlayerBulletAndEnemy()
+void IngameLevel::ProcessCollisionPlayerBullet()
 {
-	// 플레이어 탄약과 적 액터 필터링.
+	// 플레이어 탄약과 적 액터, Wall 필터링.
 	std::vector<Actor*> bullets;
 	std::vector<Enemy*> enemies;
+	std::vector<Actor*> walls;
 
 	// 액터 필터링.
 	for (Actor* const actor : actors)
@@ -192,31 +193,56 @@ void IngameLevel::ProcessCollisionPlayerBulletAndEnemy()
 		if (actor->IsTypeOf<Enemy>())
 		{
 			enemies.emplace_back(actor->As<Enemy>());
+			continue;
+		}
+
+		if (actor->IsTypeOf<Wall>())
+		{
+			walls.emplace_back(actor);
+			continue;
 		}
 	}
 
-	// 판정 안해도 되는지 확인.
-	if (bullets.size() == 0 || enemies.size() == 0)
+	// 판정 안해도 되는지 확인.<
+	if (bullets.size() > 0 && enemies.size() > 0)
 	{
-		return;
-	}
-
-	// 충돌 판정.
-	for (Actor* const bullet : bullets)
-	{
-		for (Enemy* const enemy : enemies)
+		// 충돌 판정.
+		for (Actor* const bullet : bullets)
 		{
-			// AABB 겹침 판정.
-			if (bullet->TestIntersect(enemy))
+			for (Enemy* const enemy : enemies)
 			{
-				enemy->OnDamaged(player->attackPower);
-				bullet->Destroy();
+				// AABB 겹침 판정.
+				if (bullet->TestIntersect(enemy))
+				{
+					enemy->OnDamaged(player->attackPower);
+					bullet->Destroy();
 
-				// TODO: EXP 처리.
-				continue;
+					// TODO: EXP 처리.
+					continue;
+				}
 			}
 		}
 	}
+
+	// 총알 <=> 벽 충돌 판정.
+	if (bullets.size() > 0 && walls.size() > 0)
+	{
+		// 충돌 판정.
+		for (Actor* const wall : walls)
+		{
+			for (Actor* const bullet : bullets)
+			{
+				// AABB 겹침 판정.
+				if (wall->TestIntersect(bullet))
+				{
+					bullet->Destroy();
+					continue;
+				}
+			}
+		}
+	}
+
+
 }
 
 void IngameLevel::DrawPlayerUI()
