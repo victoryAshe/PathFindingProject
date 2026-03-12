@@ -35,11 +35,15 @@ public:
 	virtual void Tick(float deltaTime) override;
 	virtual void Draw() override;
 
+	// === Navigation ===
 	// 경로 질의.
 	std::vector<Vector2> FindPath(
 		const Vector2& start,
 		const Vector2& goal
 	);
+
+	// === Draw things related to Debugging ===
+	void DrawPath(const std::vector<Vector2>& path);
 
 	// 특정 Actor 추적 경로 질의
 	// : 해당 Actor의 인접한 칸을 선택해 경로 반환.
@@ -59,8 +63,6 @@ public:
 		const Vector2& targetPosition,
 		int attackRange
 	) const;
-
-	void DrawPath(const std::vector<Vector2>& path);
 
 	// ICanActorMove Interface를 받아서 override.
 	virtual bool CanMove(
@@ -89,20 +91,22 @@ public:
 		Vector2& outWorldLocalPosition
 	) const;
 	
-	// Player 죽음 처리.
+	// === Player Death Process (Game Lose) ===
 	void OnPlayerDead();
 	bool IsPlayerDead() const { return isPlayerDead; }
 
+	// === HP UI ===
 	// Player가 호출할 HP UI 업데이트 함수.
 	void RefreshPlayerHpUI();
 
-	// Enemy Random Spawn
+	// === Random Enemy Spawn ===
 	void SpawnEnemyAtRandomLocation();
 
+	// === Upgrade ===
 	// Enemy가 죽을 때 호출.
 	void OnEnemyKilled();
 
-	// Getter.
+	// === Getter ===
 	const std::vector<Actor*>& GetActors() const { return actors; }
 	
 	Player* GetPlayerActor() const { return player; }
@@ -115,19 +119,25 @@ private:
 	// 충돌 판정 처리 함수.
 	void ProcessCollisionPlayerBullet();
 
-	// Fire CoolDown UI 문자열 갱신.
+	// === Draw things related to Debugging ===
+	void ToggleDrawPath();
+	void UpdateFpsLabel(float deltaTime);
+
+	// === Player Death Process (Game Lose) ===
+	void UpdatePlayerDeathFlow(float deltaTime);
+	void ReturnToMenuAfterPlayerDeath();
+
+	// === Fire Cool down UI ===
+	// UI 문자열 갱신.
 	void UpdateFireCooldownUI();
 
 	// 게이지 문자열 생성 함수.
 	void BuildFireCooldownGaugeText(char* outBuffer, int bufferSize) const;
 
+	// === Money UI ===
 	void UpdateMoneyText();
 
-	// Player 죽음 처리.
-	void UpdatePlayerDeathFlow(float deltaTime);
-	void ReturnToMenuAfterPlayerDeath();
-
-	// Enemy Random Spawn 보조 함수들 추가
+	// === Random Enemy Spawn ===
 	bool TryFindEnemySpawnLocation(
 		Vector2& outSpawnLocation,
 		float minSpawnDistanceFromPlayer,
@@ -147,15 +157,13 @@ private:
 	bool IsOccupiedByBlockingActor(const Vector2& candidateLocation) const;
 	Vector2 GenerateRandomWorldLocation() const;
 
-	// 카드 업그레이드 흐름
+	// === Upgrade Card ===
 	void StartUpgradeSelection();
 	void EndUpgradeSelection();
 	void ProcessUpgradeInput();
 	void SelectUpgrade(int index);
 	void ApplyUpgrade(const PlayerUpgradeDefinition& selectedUpgrade);
 	std::vector<PlayerUpgradeDefinition> GenerateUpgradeChoices(int count) const;
-
-	void ToggleDrawPath();
 
 private:
 	Player* player = nullptr;
@@ -182,6 +190,20 @@ private:
 	LabelUI* moneyLabel = nullptr;
 	char moneyText[64] = {};
 
+	// === FPS UI ===
+	LabelUI* fpsLabel = nullptr;
+	char fpsText[32] = {};
+
+	// === Upgrade Card UI ===
+	// Enemy 처치 카운트
+	int enemyKillCount = 0;
+
+	bool isUpgradeSelectionActive = false;
+	static constexpr int killsRequiredForUpgradeSelection = 5;
+
+	std::vector<PlayerUpgradeDefinition> currentUpgradeChoices;
+	UpgradeSelectionUI* upgradeSelectionUI = nullptr;
+
 
 	// === Player Death Process (Game Lose) ===
 	// 플레이어가 죽었는지 확인.
@@ -204,22 +226,11 @@ private:
 	// Enemy Spawn 주기 관리 객체
 	EnemySpawner enemySpawner;
 
-
 	// === Navigation ===
 	// PathFinding을 위한 class. 
 	Navigation::LevelNavigation levelNavigation;
 	Navigation::NavigationController navigationController;
 
 	bool IsPathDrawMode = false;
-
-	// === Upgrade Card UI ===
-	// Enemy 처치 카운트
-	int enemyKillCount = 0;
-
-	bool isUpgradeSelectionActive = false;
-	static constexpr int killsRequiredForUpgradeSelection = 5;
-
-	std::vector<PlayerUpgradeDefinition> currentUpgradeChoices;
-	UpgradeSelectionUI* upgradeSelectionUI = nullptr;
 };
 

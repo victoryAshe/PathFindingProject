@@ -29,6 +29,8 @@ namespace Wanted
 		virtual void Draw();
 
 	public:
+
+		// Getter & Setter.
 		inline void SetLocalPosition(const Vector2& newLocalPosition);
 		inline Vector2 GetLocalPosition() const { return localPosition; }
 
@@ -46,6 +48,9 @@ namespace Wanted
 
 		void SetText(const char* newText);
 		void SetMultilineText(const char* newText);
+
+		inline void SetRenderInWorldRect(bool RenderInWorldRect) { isRenderInWorldRect = RenderInWorldRect; }
+		bool IsRenderingInWorldRect() const { return isRenderInWorldRect; }
 
 		inline const char* GetTextBuffer() const { return textBuffer; }
 		int GetWidth() const;
@@ -73,6 +78,9 @@ namespace Wanted
 
 		// UIRect 내부 로컬 좌표
 		Vector2 localPosition = Vector2::Zero;
+
+		// WorldRect에 렌더할지 여부
+		bool isRenderInWorldRect = false;
 
 		Color color = Color::White;
 

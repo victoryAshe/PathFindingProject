@@ -9,9 +9,11 @@
 #include "Actor/Wall.h"
 #include "Actor/PlayerBullet.h"
 
-// UI 문자열 처리를 위해 include.
+// UI 문자열 처리를 위해.
 #include <cstring>
 
+// Engine FPS 가져오기 위해.
+#include "Engine/Engine.h"
 
 IngameLevel::IngameLevel()
 	: levelNavigation(this),
@@ -27,10 +29,7 @@ IngameLevel::IngameLevel()
 	player = new Player(initialPlayerPosition);
 	AddNewActor(player);
 
-	// =========================
-	// Player HP UI 생성
-	// : localPosition은 UIRect 내부 기준 좌표
-	// =========================
+	// PlayerHP LabelUI 생성.
 	playerHpTitleLabel = new LabelUI(
 		"PlayerHP:",
 		Vector2(3, 3),
@@ -61,12 +60,23 @@ IngameLevel::IngameLevel()
 		10000
 	);
 
+	// FPS LabelUI 생성
+	fpsLabel = new LabelUI(
+		"FPS: 0",
+		Vector2(2, 1),
+		Color::Yellow,
+		100000
+	);
+	// WorldRect에 그려지도록.
+	fpsLabel->SetRenderInWorldRect(true);
+	AddNewUIElement(fpsLabel);
+
 	AddNewUIElement(playerHpTitleLabel);
 	AddNewUIElement(playerHpValueLabel);
 	AddNewUIElement(fireCooldownLabel);
 	AddNewUIElement(moneyLabel);
 
-	// [추가] 카드 업그레이드 UI 생성
+	// 카드 업그레이드 UI 생성
 	upgradeSelectionUI = new UpgradeSelectionUI();
 	upgradeSelectionUI->SetVisible(false);
 	AddNewUIElement(upgradeSelectionUI);
@@ -86,6 +96,7 @@ IngameLevel::~IngameLevel()
 
 void IngameLevel::Tick(float deltaTime)
 {
+
 	// UI 문자열을 매 프레임 최신 상태로 갱신.
 	UpdateFireCooldownUI();
 	UpdateMoneyText();
@@ -93,7 +104,7 @@ void IngameLevel::Tick(float deltaTime)
 	ToggleDrawPath();
 
 
-	// [추가] 카드 선택 중에는 월드 진행을 멈추고 입력만 받는다.
+	// 카드 선택 중에는 월드 진행을 멈추고 입력만 받는다.
 	if (isUpgradeSelectionActive)
 	{
 		ProcessUpgradeInput();
@@ -102,6 +113,8 @@ void IngameLevel::Tick(float deltaTime)
 
 	super::Tick(deltaTime);
 
+	// super::Tick이 지나가고 deltaTime 계산이 된 뒤에, FPS Label 갱신/
+	UpdateFpsLabel(deltaTime);
 
 	// Player 사망 시, 대기 흐름만 처리.
 	if (isPlayerDead)
@@ -792,6 +805,27 @@ void IngameLevel::ToggleDrawPath()
 	{
 		IsPathDrawMode = !IsPathDrawMode;
 	}
+}
+
+void IngameLevel::UpdateFpsLabel(float deltaTime)
+{
+	if (!fpsLabel)
+	{
+		return;
+	}
+
+	const float displayedFps = Engine::Get().GetDisplayedFps();
+	const float frameTimeMs = Engine::Get().GetDisplayedFrameTimeMs();
+
+	snprintf(
+		fpsText,
+		sizeof(fpsText),
+		"FPS: %.1f (%.2f ms)",
+		displayedFps,
+		frameTimeMs
+	);
+
+	fpsLabel->SetLabelText(fpsText);
 }
 
 Vector2 IngameLevel::GetWorldScreenOrigin() const

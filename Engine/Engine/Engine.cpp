@@ -101,6 +101,10 @@ namespace Wanted
 				Tick(deltaTime);
 				Draw();
 
+				// 실제 실행된 frame 간격으로 통계 갱신.
+				UpdateFrameStatistics(deltaTime);
+
+
 				// 이전 시간 값 갱신.
 				previousTime = currentTime;
 
@@ -283,5 +287,33 @@ namespace Wanted
 
 		// Renderer에 Draw 명령 전달.
 		renderer->Draw();     
+	}
+
+
+	// =========================
+	// 표시용 FPS / ms 계산
+	// 순간값 대신 짧은 구간 평균을 사용
+	// =========================
+	void Engine::UpdateFrameStatistics(float frameInterval)
+	{
+		frameStatAccumulatedTime += frameInterval;
+		++frameStatAccumulatedCount;
+
+		if (frameStatAccumulatedTime < frameStatUpdateInterval)
+		{
+			return;
+		}
+
+		const float averageFrameTime =
+			frameStatAccumulatedTime / static_cast<float>(frameStatAccumulatedCount);
+
+		displayedFps = (averageFrameTime > 0.0f)
+			? (1.0f / averageFrameTime)
+			: 0.0f;
+
+		displayedFrameTimeMs = averageFrameTime * 1000.0f;
+
+		frameStatAccumulatedTime = 0.0f;
+		frameStatAccumulatedCount = 0;
 	}
 }

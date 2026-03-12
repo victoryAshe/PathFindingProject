@@ -47,14 +47,15 @@ namespace Wanted
 
 	void UIElement::OnDrawUI()
 	{
-
-
+		// Exception Handling.
 		if (!textBuffer || width <= 0 || height <= 0)
 		{
 			return;
 		}
 
-		const IntRect renderRect = owner ? owner->GetUIRect() : IntRect();
+		const IntRect renderRect = owner
+			? (isRenderInWorldRect ? owner->GetWorldRect() : owner->GetUIRect())
+			: IntRect();
 
 		Renderer::Get().Submit(
 			textBuffer,
@@ -90,7 +91,6 @@ namespace Wanted
 	{
 		CopyMultilineText(newText);
 	}
-
 
 	void UIElement::ClearTextBuffer()
 	{
