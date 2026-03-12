@@ -35,15 +35,18 @@ public:
 	virtual void Tick(float deltaTime) override;
 	virtual void Draw() override;
 
+	// === Draw things related to Debugging ===
+	void DrawPath(const std::vector<Vector2>& path);
+
+	// === Random Enemy Spawn ===
+	void SpawnEnemyAtRandomLocation();
+
 	// === Navigation ===
 	// 경로 질의.
 	std::vector<Vector2> FindPath(
 		const Vector2& start,
 		const Vector2& goal
 	);
-
-	// === Draw things related to Debugging ===
-	void DrawPath(const std::vector<Vector2>& path);
 
 	// 특정 Actor 추적 경로 질의
 	// : 해당 Actor의 인접한 칸을 선택해 경로 반환.
@@ -98,9 +101,6 @@ public:
 	// === HP UI ===
 	// Player가 호출할 HP UI 업데이트 함수.
 	void RefreshPlayerHpUI();
-
-	// === Random Enemy Spawn ===
-	void SpawnEnemyAtRandomLocation();
 
 	// === Upgrade ===
 	// Enemy가 죽을 때 호출.

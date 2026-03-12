@@ -251,7 +251,7 @@ void IngameLevel::SpawnEnemyAtRandomLocation()
 		return;
 	}
 
-	// 방어적으로 월드 범위 재검사
+	// spawnLocation은 반드시 world local 좌표여야 함
 	if (!IsInsideWorldBounds(spawnLocation))
 	{
 		return;
@@ -526,6 +526,9 @@ void IngameLevel::OnPlayerDead()
 	isPlayerDead = true;
 	playerDeadPosition = player ? player->GetPosition() : Vector2::Zero;
 
+	// Player 사망 시 Enemy 자동 Spawn 중지.
+	enemySpawner.Stop();
+
 	playerDeathTimer.Restart(playerDeathWaitTime);
 }
 
@@ -656,8 +659,8 @@ Vector2 IngameLevel::GenerateRandomWorldLocation() const
 {
 	const IntRect& worldRect = GetWorldRect();
 
-	const int randomX = Util::Random(worldRect.GetLeft(), worldRect.GetRight() - 1);
-	const int randomY = Util::Random(worldRect.GetTop(), worldRect.GetBottom() - 1);
+	const int randomX = Util::Random(2, worldRect.width - 3);
+	const int randomY = Util::Random(2, worldRect.height - 3);
 
 	return Vector2(
 		randomX, randomY
