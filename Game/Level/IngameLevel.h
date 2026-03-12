@@ -13,7 +13,8 @@
 // UI
 // TODO: UI Manager로 빼기.
 #include "UI/LabelUI.h"
-
+#include "Upgrade/PlayerUpgradeDefinition.h"
+#include "UI/UpgradeSelectionUI.h"
 // EnemySpawner.
 #include "Spawner/EnemySpawner.h"
 
@@ -98,6 +99,9 @@ public:
 	// Enemy Random Spawn
 	void SpawnEnemyAtRandomLocation();
 
+	// Enemy가 죽을 때 호출.
+	void OnEnemyKilled();
+
 	// Getter.
 	const std::vector<Actor*>& GetActors() const { return actors; }
 	
@@ -143,10 +147,20 @@ private:
 	bool IsOccupiedByBlockingActor(const Vector2& candidateLocation) const;
 	Vector2 GenerateRandomWorldLocation() const;
 
+	// 카드 업그레이드 흐름
+	void StartUpgradeSelection();
+	void EndUpgradeSelection();
+	void ProcessUpgradeInput();
+	void SelectUpgrade(int index);
+	void ApplyUpgrade(const PlayerUpgradeDefinition& selectedUpgrade);
+	std::vector<PlayerUpgradeDefinition> GenerateUpgradeChoices(int count) const;
+
+	void ToggleDrawPath();
 
 private:
 	Player* player = nullptr;
 
+	// === HP UI ===
 	// Player HP UI를 LabelUI 2개로 분리(색을 다르게 처리하기 위해).
 	LabelUI* playerHpTitleLabel = nullptr;
 	LabelUI* playerHpValueLabel = nullptr;
@@ -154,17 +168,22 @@ private:
 	// Player HP 문자열.
 	char playerHpValueText[32] = {};
 
-
+	// === Fire Cool down UI ===
 	// Player Fire cool down 표시용 UI.
 	LabelUI* fireCooldownLabel = nullptr;
+
+	// Fire 게이지 칸 수.
+	static constexpr int fireCooldownGaugeCellCount = 6;
 
 	// Player Fire cool down 출력 버퍼.
 	char fireCooldownGaugeText[64] = {};
 
+	// === Money UI ===
 	LabelUI* moneyLabel = nullptr;
 	char moneyText[64] = {};
 
 
+	// === Player Death Process (Game Lose) ===
 	// 플레이어가 죽었는지 확인.
 	bool isPlayerDead = false;
 
@@ -176,9 +195,8 @@ private:
 	// Player가 죽은 뒤, 4초 동안 멈춤을 처리해줄 timer.
 	Timer playerDeathTimer = Timer(playerDeathWaitTime);
 
-	// Fire 게이지 칸 수.
-	static constexpr int fireCooldownGaugeCellCount = 6;
 
+	// === Random Enemy Spawn ===
 	// Enemy 랜덤 스폰 기본값
 	static constexpr float enemySpawnMinDistanceFromPlayer = 8.0f;
 	static constexpr int enemySpawnSearchAttemptCount = 32;
@@ -186,8 +204,22 @@ private:
 	// Enemy Spawn 주기 관리 객체
 	EnemySpawner enemySpawner;
 
+
+	// === Navigation ===
 	// PathFinding을 위한 class. 
 	Navigation::LevelNavigation levelNavigation;
 	Navigation::NavigationController navigationController;
+
+	bool IsPathDrawMode = false;
+
+	// === Upgrade Card UI ===
+	// Enemy 처치 카운트
+	int enemyKillCount = 0;
+
+	bool isUpgradeSelectionActive = false;
+	static constexpr int killsRequiredForUpgradeSelection = 5;
+
+	std::vector<PlayerUpgradeDefinition> currentUpgradeChoices;
+	UpgradeSelectionUI* upgradeSelectionUI = nullptr;
 };
 

@@ -35,6 +35,11 @@ public:
 
 	void ChangeBalance(int value);
 
+	// Upgrade Ω√ »£√‚.
+	void IncreaseHp(int amount);
+	void IncreaseAttackPower(int amount);
+	void ReduceFireCooldown(float amount);
+
 protected:
 	virtual void SetOwner(Level* newOwner) override;
 
@@ -58,6 +63,7 @@ private:
 public:
 	int attackPower = 1;
 	int hp = 3;
+	int maxHp = 3;
 	int money = 100;
 
 private:

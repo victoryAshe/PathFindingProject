@@ -207,3 +207,50 @@ void Player::ChangeBalance(int value)
 {
 	money += value;	
 }
+
+// 즉시 회복
+void Player::IncreaseHp(int amount)
+{
+	if (amount <= 0)
+	{
+		return;
+	}
+
+	hp += amount;
+
+	IngameLevel* ingameLevel = dynamic_cast<IngameLevel*>(GetOwner());
+	if (ingameLevel)
+	{
+		ingameLevel->RefreshPlayerHpUI();
+	}
+}
+
+// 공격력 증가
+void Player::IncreaseAttackPower(int amount)
+{
+	if (amount <= 0)
+	{
+		return;
+	}
+
+	attackPower += amount;
+}
+
+// 발사 간격 감소.
+void Player::ReduceFireCooldown(float amount)
+{
+	if (amount <= 0.0f)
+	{
+		return;
+	}
+
+	fireInterval -= amount;
+
+	// 너무 짧아지지 않도록 하한선 적용
+	if (fireInterval < 0.10f)
+	{
+		fireInterval = 0.10f;
+	}
+
+	timer.SetTargetTime(fireInterval);
+}

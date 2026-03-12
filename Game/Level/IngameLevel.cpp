@@ -66,6 +66,11 @@ IngameLevel::IngameLevel()
 	AddNewUIElement(fireCooldownLabel);
 	AddNewUIElement(moneyLabel);
 
+	// [추가] 카드 업그레이드 UI 생성
+	upgradeSelectionUI = new UpgradeSelectionUI();
+	upgradeSelectionUI->SetVisible(false);
+	AddNewUIElement(upgradeSelectionUI);
+
 	// 초기 HP text 반영.
 	RefreshPlayerHpUI();
 
@@ -81,11 +86,22 @@ IngameLevel::~IngameLevel()
 
 void IngameLevel::Tick(float deltaTime)
 {
-	super::Tick(deltaTime);
-
 	// UI 문자열을 매 프레임 최신 상태로 갱신.
 	UpdateFireCooldownUI();
 	UpdateMoneyText();
+
+	ToggleDrawPath();
+
+
+	// [추가] 카드 선택 중에는 월드 진행을 멈추고 입력만 받는다.
+	if (isUpgradeSelectionActive)
+	{
+		ProcessUpgradeInput();
+		return;
+	}
+
+	super::Tick(deltaTime);
+
 
 	// Player 사망 시, 대기 흐름만 처리.
 	if (isPlayerDead)
@@ -237,6 +253,17 @@ void IngameLevel::SpawnEnemyAtRandomLocation()
 	AddNewActor(new Enemy(spawnLocation));
 }
 
+void IngameLevel::OnEnemyKilled()
+{
+	enemyKillCount++;
+
+	if (enemyKillCount >= killsRequiredForUpgradeSelection)
+	{
+		enemyKillCount = 0;
+		StartUpgradeSelection();
+	}
+}
+
 void IngameLevel::ProcessCollisionPlayerBullet()
 {
 	// 플레이어 탄약과 적 액터, Wall 필터링.
@@ -274,6 +301,14 @@ void IngameLevel::ProcessCollisionPlayerBullet()
 		{
 			for (Enemy* const enemy : enemies)
 			{
+				if (!bullet || !enemy) continue;
+
+				// [추가] 이미 파괴 예정이면 무시
+				if (bullet->DestroyRequested() || enemy->DestroyRequested())
+				{
+					continue;
+				}
+
 				// AABB 겹침 판정.
 				if (bullet->TestIntersect(enemy))
 				{
@@ -453,6 +488,7 @@ bool IngameLevel::CanAttackFromPosition(const Vector2& attackPosition, const Vec
 void IngameLevel::DrawPath(const std::vector<Vector2>& path)
 {
 	if (path.empty()) return;
+	if (!IsPathDrawMode) return;
 
 	const IntRect& worldRect = GetWorldRect();
 
@@ -611,9 +647,151 @@ Vector2 IngameLevel::GenerateRandomWorldLocation() const
 	const int randomY = Util::Random(worldRect.GetTop(), worldRect.GetBottom() - 1);
 
 	return Vector2(
-		static_cast<float>(randomX),
-		static_cast<float>(randomY)
+		randomX, randomY
 	);
+}
+
+void IngameLevel::StartUpgradeSelection()
+{
+	if (isUpgradeSelectionActive)
+	{
+		return;
+	}
+
+	isUpgradeSelectionActive = true;
+
+	currentUpgradeChoices = GenerateUpgradeChoices(3);
+
+	if (upgradeSelectionUI)
+	{
+		upgradeSelectionUI->SetChoices(currentUpgradeChoices);
+		upgradeSelectionUI->SetVisible(true);
+	}
+}
+
+void IngameLevel::EndUpgradeSelection()
+{
+	isUpgradeSelectionActive = false;
+
+	currentUpgradeChoices.clear();
+
+	if (upgradeSelectionUI)
+	{
+		upgradeSelectionUI->ClearChoices();
+		upgradeSelectionUI->SetVisible(false);
+	}
+}
+
+void IngameLevel::ProcessUpgradeInput()
+{
+	// 사용자 요청대로 숫자 1,2,3으로 즉시 선택
+	if (Input::Get().GetKeyDown('1'))
+	{
+		SelectUpgrade(0);
+	}
+
+	if (Input::Get().GetKeyDown('2'))
+	{
+		SelectUpgrade(1);
+	}
+
+	if (Input::Get().GetKeyDown('3'))
+	{
+		SelectUpgrade(2);
+	}
+}
+
+void IngameLevel::SelectUpgrade(int index)
+{
+	if (index < 0 || index >= static_cast<int>(currentUpgradeChoices.size()))
+	{
+		return;
+	}
+
+	ApplyUpgrade(currentUpgradeChoices[index]);
+	
+	EndUpgradeSelection();
+}
+
+void IngameLevel::ApplyUpgrade(const PlayerUpgradeDefinition& selectedUpgrade)
+{
+	if (!player)
+	{
+		return;
+	}
+
+	switch (selectedUpgrade.type)
+	{
+	case PlayerUpgradeType::IncreaseHp:
+		player->IncreaseHp(static_cast<int>(selectedUpgrade.value));
+		break;
+
+	case PlayerUpgradeType::IncreaseAttackPower:
+		player->IncreaseAttackPower(static_cast<int>(selectedUpgrade.value));
+		break;
+
+	case PlayerUpgradeType::ReduceFireCooldown:
+		player->ReduceFireCooldown(selectedUpgrade.value);
+		break;
+
+	default:
+		break;
+	}
+
+	// 업그레이드 적용 후 UI 즉시 반영
+	RefreshPlayerHpUI();
+	UpdateFireCooldownUI();
+	UpdateMoneyText();
+}
+
+std::vector<PlayerUpgradeDefinition> IngameLevel::GenerateUpgradeChoices(int count) const
+{
+	// 현재 프로젝트에서 바로 적용 가능한 업그레이드만 사용
+	// TODO: 카드 추가 및 UI Manager에 넘기기.
+	std::vector<PlayerUpgradeDefinition> upgradePool =
+	{
+		{
+			PlayerUpgradeType::IncreaseHp,
+			"Reinforced Body",
+			"Heal HP +1",
+			1.0f
+		},
+		{
+			PlayerUpgradeType::IncreaseAttackPower,
+			"Sharpened Shot",
+			"Attack Power +1",
+			1.0f
+		},
+		{
+			PlayerUpgradeType::ReduceFireCooldown,
+			"Rapid Trigger",
+			"Fire Interval -0.05",
+			0.05f
+		}
+	};
+
+	std::vector<PlayerUpgradeDefinition> result;
+
+	while (!upgradePool.empty() && static_cast<int>(result.size()) < count)
+	{
+		const int randomIndex = Util::Random(
+			0,
+			static_cast<int>(upgradePool.size()) - 1
+		);
+
+		result.emplace_back(upgradePool[randomIndex]);
+		upgradePool.erase(upgradePool.begin() + randomIndex);
+	}
+
+	return result;
+}
+
+void IngameLevel::ToggleDrawPath()
+{
+	if (Input::Get().GetKeyDown(VK_CONTROL))
+	{
+		IsPathDrawMode = !IsPathDrawMode;
+	}
 }
 
 Vector2 IngameLevel::GetWorldScreenOrigin() const

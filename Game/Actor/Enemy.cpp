@@ -26,6 +26,12 @@ void Enemy::OnDamaged(int damage)
 {
 	if (damage <= 0) return;
 
+	// 이미 죽었거나 파괴 예약됐으면 처리 x.
+	if (DestroyRequested() || hp <= 0)
+	{
+		return;
+	}
+
 	hp = max(hp - damage, 0);
 	ChangeImage(std::to_string(hp).c_str());
 
@@ -40,6 +46,8 @@ void Enemy::OnDamaged(int damage)
 		// Player 돈 추가
 		owningIngameLevel->GetPlayerActor()->ChangeBalance(10);
 
+		// 적 처치 카운트 반영
+		owningIngameLevel->OnEnemyKilled();
 		return;
 	}	
 }
@@ -87,6 +95,7 @@ void Enemy::UpdateMovement(float deltaTime)
 
 void Enemy::ResetMovement()
 {
+
 	movementController.ResetNavigationState();
 }
 

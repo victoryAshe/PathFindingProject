@@ -113,6 +113,8 @@ xcopy $(SolutionDir)Assets\NPC\* $(OutDir)NPC\ /e /y</Command>
     <ClCompile Include="Dialogue\DialogueTable.cpp" />
     <ClCompile Include="NPC\NpcTable.cpp" />
     <ClCompile Include="Spawner\EnemySpawner.cpp" />
+    <ClCompile Include="UI\UpgradeSelectionUI.cpp" />
+    <ClCompile Include="Upgrade\PlayerUpgradeDefinition.h" />
     <ClCompile Include="Util\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -138,6 +140,7 @@ xcopy $(SolutionDir)Assets\NPC\* $(OutDir)NPC\ /e /y</Command>
     <ClInclude Include="NPC\NpcRow.h" />
     <ClInclude Include="NPC\NpcTable.h" />
     <ClInclude Include="Spawner\EnemySpawner.h" />
+    <ClInclude Include="UI\UpgradeSelectionUI.h" />
     <ClInclude Include="Util\MessageEvent.h" />
     <ClInclude Include="Util\Timer.h" />
   </ItemGroup>
