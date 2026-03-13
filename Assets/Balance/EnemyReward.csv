@@ -1,0 +1,13 @@
+﻿EnemyType,EnemyLevel,ExpReward,GoldReward,ScoreReward
+Normal,1,1,2,1
+Normal,2,2,3,2
+Normal,3,4,4,3
+Tank,1,2,3,2
+Tank,2,4,4,3
+Tank,3,6,5,4
+Fast,1,2,3,2
+Fast,2,3,4,3
+Fast,3,5,5,4
+Elite,1,4,5,5
+Elite,2,6,10,10
+Elite,3,9,15,15

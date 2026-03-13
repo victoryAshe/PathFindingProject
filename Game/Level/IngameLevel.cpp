@@ -626,7 +626,7 @@ bool IngameLevel::IsFarEnoughFromPlayer(const Vector2& candidateLocation, float 
 
 	return distanceSquared >= minDistanceSquared;
 }
-
+ 
 bool IngameLevel::IsOccupiedByBlockingActor(const Vector2& candidateLocation) const
 {
 	if (player && player->GetPosition() == candidateLocation)
